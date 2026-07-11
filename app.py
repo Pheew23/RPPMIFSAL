@@ -208,7 +208,7 @@ st.markdown("""
 <div style="text-align: right;">
     <div id="theme-toggle-btn" class="theme-toggle-container" onclick="toggleTheme()">
         <span class="theme-icon">🌙</span>
-        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Mode Gelap</span>
+        <span style="font-weight: 1000; font-size: 0.9rem; color: var(--text-main);">Mode Gelap</span>
     </div>
 </div>
 <br>
