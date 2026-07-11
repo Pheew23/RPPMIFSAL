@@ -3,165 +3,99 @@ import requests
 import os
 from dotenv import load_dotenv
 
-# --- MUAT KONFIGURASI OTOMATIS ---
+# 1. Load Environment Variables
 load_dotenv()
-API_KEY_OTOMATIS = os.getenv("NVIDIA_API_KEY")
+API_KEY = os.getenv("NVIDIA_API_KEY")
 
-# Konfigurasi Halaman
-st.set_page_config(
-    page_title="Generator KBC 2026 - Fixed",
-    page_icon="❤️",
-    layout="wide"
-)
+# 2. Konfigurasi Halaman
+st.set_page_config(page_title="Generator KBC 2026", page_icon="❤️", layout="wide")
 
-# --- KONFIGURASI API ---
-API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL_NAME = "qwen/qwen3.5-397b-a17b"
-
-# --- CSS CUSTOM ---
+# 3. CSS Styling
 st.markdown("""
 <style>
-    .main-header { font-size: 2.5rem; font-weight: bold; color: #FF4B4B; text-align: center; margin-bottom: 1rem; }
-    .sub-header { font-size: 1.2rem; color: #555; text-align: center; margin-bottom: 2rem; }
-    .stButton>button { width: 100%; background-color: #FF4B4B; color: white; font-weight: bold; border: none; padding: 10px; border-radius: 5px; }
-    .stButton>button:hover { background-color: #ff2b2b; }
-    .output-box { background-color: #f9f9f9; padding: 25px; border-radius: 10px; border-left: 5px solid #FF4B4B; margin-top: 10px; line-height: 1.6; white-space: pre-wrap; }
-    .status-badge { display: inline-block; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; }
-    .status-ok { background-color: #d4edda; color: #155724; }
-    .status-err { background-color: #f8d7da; color: #721c24; }
+    .main-header { font-size: 2.5rem; font-weight: bold; color: #FF4B4B; text-align: center; }
+    .stButton>button { background-color: #FF4B4B; color: white; font-weight: bold; width: 100%; }
+    .output-box { background-color: #f0f2f6; padding: 20px; border-radius: 10px; border-left: 5px solid #FF4B4B; white-space: pre-wrap; }
 </style>
 """, unsafe_allow_html=True)
 
-# --- FUNGSI API ---
-def generate_kbc_content(api_key, system_prompt, user_prompt):
-    if not api_key:
-        return "❌ Error: API Key tidak ditemukan."
+# 4. Fungsi API
+def call_ai(prompt_text):
+    if not API_KEY:
+        return "ERROR: API Key tidak ditemukan di file .env"
 
+    url = "https://integrate.api.nvidia.com/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {api_key}",
+        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
-
     payload = {
-        "model": MODEL_NAME,
+        "model": "qwen/qwen3.5-397b-a17b",
         "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "system", "content": "Anda adalah ahli kurikulum KBC 2026 (Kurikulum Berbasis Cinta). Buatlah RPP, ATP, LKPD yang humanis, penuh empati, dan mendetail. Gunakan format Markdown."},
+            {"role": "user", "content": prompt_text}
         ],
         "temperature": 0.7,
-        "top_p": 0.9,
         "max_tokens": 4096
     }
 
     try:
-        response = requests.post(API_URL, headers=headers, json=payload, timeout=120)
+        response = requests.post(url, headers=headers, json=payload, timeout=120)
         response.raise_for_status()
-        result = response.json()
-        return result['choices'][0]['message']['content']
+        return response.json()['choices'][0]['message']['content']
     except Exception as e:
-        return f"❌ Error Sistem: {str(e)}"
+        return f"Error API: {str(e)}"
 
-# --- PROMPT SYSTEM ---
-SYSTEM_PROMPT = """
-Anda adalah Ahli Kurikulum Pendidikan Indonesia spesialis 'Kurikulum Berbasis Cinta (KBC) 2026'.
-Filosofi: Integrasi akademik dengan empati, kasih sayang, dan kesejahteraan emosional.
-Tugas: Buat perangkat pembelajaran (RPP, ATP, LKPD, dll) yang HOLISTIK, MANUSIAWI, dan SIAP PAKAI.
-Format: Gunakan Markdown (#, ##, ###) yang rapi. Langsung berikan isi dokumen tanpa basa-basi.
-"""
-
-def build_user_prompt(mapel, kelas, materi, semester, komponen):
-    return f"""
-    BUATKAN PERANGKAT PEMBELAJARAN KBC 2026 UNTUK:
-    - Mapel: {mapel}
-    - Kelas: {kelas}
-    - Materi: {materi}
-    - Semester: {semester}
-    - Komponen Diminta: {komponen}
-
-    INSTRUKSI:
-    1. ATP: Alur logis & fleksibel.
-    2. KKTP: Asesmen membangun, bukan menghakimi.
-    3. RPP: Sertakan 'Ice Breaking Cinta' & 'Refleksi Hati'.
-    4. LKPD: Aktivitas kolaboratif berbasis empati.
-    5. Prota/Promes: Realistis dan manusiawi.
-
-    HASIL HARUS DETAIL DAN SIAP CETAK.
-    """
-
-# --- UI UTAMA ---
+# 5. UI Utama
 def main():
-    # Cek API Key
-    if API_KEY_OTOMATIS:
-        status_html = '<span class="status-badge status-ok">✅ API Terhubung Otomatis</span>'
-    else:
-        status_html = '<span class="status-badge status-err">⚠️ API Key Tidak Ditemukan</span>'
-
-    st.markdown(f"<div style='text-align: right;'>{status_html}</div>", unsafe_allow_html=True)
-    st.markdown("<h1 class='main-header'>❤️ Generator KBC 2026</h1>", unsafe_allow_html=True)
-    st.markdown("<p class='sub-header'>Perbaikan Error Streamlit | Lagos AI 9.1</p>", unsafe_allow_html=True)
-
-    if not API_KEY_OTOMATIS:
-        st.error("🚫 **GAGAL MEMUAT API KEY:** Pastikan file `.env` ada di folder yang sama dan berisi `NVIDIA_API_KEY=...`")
+    # Cek API Key di awal
+    if not API_KEY:
+        st.error("🚫 **CRITICAL ERROR:** File `.env` tidak ditemukan atau kosong. Pastikan file `.env` berisi `NVIDIA_API_KEY=...`")
         st.stop()
 
-    # Input Data
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        mapel = st.text_input("Mata Pelajaran", placeholder="Contoh: Matematika")
-        materi = st.text_area("Materi Pokok", placeholder="Contoh: Pecahan", height=100)
-    with col2:
-        kelas = st.selectbox("Kelas / Fase", 
-            ["Fase A (SD 1-2)", "Fase B (SD 3-4)", "Fase C (SD 5-6)", 
-             "Fase D (SMP 7-9)", "Fase E (SMA 10)", "Fase F (SMA 11-12)"])
-        semester = st.selectbox("Semester", ["Ganjil", "Genap"])
+    st.markdown("<h1 class='main-header'>❤️ Generator RPP KBC 2026</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center'>Oleh Lagos AI 9.1 (Rian Dev)</p>")
 
-    st.divider()
+    # Input Form
+    with st.form("kbc_form"):
+        col1, col2 = st.columns(2)
+        with col1:
+            mapel = st.text_input("Mata Pelajaran")
+            materi = st.text_area("Materi Pokok", height=100)
+        with col2:
+            kelas = st.selectbox("Kelas", ["Fase A", "Fase B", "Fase C", "Fase D", "Fase E", "Fase F"])
+            semester = st.selectbox("Semester", ["Ganjil", "Genap"])
 
-    # PERBAIKAN DI SINI: Menggunakan hanya keyword arguments untuk multiselect
-    st.subheader("📦 Pilih Komponen Dokumen")
-    options = [
-        "CP & ATP (Alur Tujuan)", 
-        "KKTP (Kriteria Ketuntasan)", 
-        "Prota & Promes (Program Tahun/Semester)", 
-        "RPP Lengkap (Modul Ajar)", 
-        "LKPD Interaktif (Lembar Kerja)"
-    ]
+        # PERBAIKAN UTAMA DI SINI: Menggunakan syntax paling aman untuk multiselect
+        st.write("**Pilih Dokumen:**")
+        komponen = st.multiselect(
+            "", # Label kosong karena kita sudah pakai st.write di atasnya
+            options=["RPP Lengkap", "ATP & CP", "KKTP", "Prota & Promes", "LKPD"],
+            default=["RPP Lengkap", "LKPD"]
+        )
 
-    komponen_list = st.multiselect(
-        label="Centang semua yang dibutuhkan:",
-        options=options,
-        default=["RPP Lengkap", "LKPD Interaktif"]
-    )
+        submitted = st.form_submit_button("🚀 Generate Sekarang")
 
-    if st.button("🚀 Buat Perangkat Ajar Sekarang"):
+    if submitted:
         if not mapel or not materi:
-            st.warning("⚠️ Mohon lengkapi Mata Pelajaran dan Materi Pokok.")
-        elif not komponen_list:
-            st.warning("⚠️ Mohon pilih minimal satu komponen.")
+            st.warning("Mohon isi Mata Pelajaran dan Materi.")
+        elif not komponen:
+            st.warning("Mohon pilih minimal satu dokumen.")
         else:
-            target_komponen = ", ".join(komponen_list)
+            with st.spinner("Sedang menyusun perangkat pembelajaran berbasis cinta..."):
+                prompt = f"Buatkan {', '.join(komponen)} untuk {mapel} kelas {kelas} materi {materi} semester {semester} dengan pendekatan KBC 2026."
+                result = call_ai(prompt)
 
-            with st.spinner('✨ Lagos AI sedang meracik kurikulum... (Tunggu sebentar)'):
-                user_prompt = build_user_prompt(mapel, kelas, materi, semester, target_komponen)
-                response_text = generate_kbc_content(API_KEY_OTOMATIS, SYSTEM_PROMPT, user_prompt)
-
-                if "Error" in response_text or "❌" in response_text:
-                    st.error(response_text)
+                if "Error" in result:
+                    st.error(result)
                 else:
-                    st.balloons()
-                    st.success("✅ Dokumen Berhasil Dibuat!")
+                    st.success("Selesai!")
+                    st.markdown(f"<div class='output-box'>{result}</div>", unsafe_allow_html=True)
 
-                    st.markdown(f"""
-                    <div class="output-box">
-                    {response_text}
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    file_name = f"KBC2026_{mapel.replace(' ', '_')}.md"
                     st.download_button(
-                        label="📥 Unduh Dokumen (.md)",
-                        data=response_text,
-                        file_name=file_name,
+                        label="📥 Download (.md)",
+                        data=result,
+                        file_name=f"RPP_{mapel}.md",
                         mime="text/markdown"
                     )
 
