@@ -8,127 +8,151 @@ from io import BytesIO
 import re
 import time
 
-# --- KONFIGURASI SISTEM & UI ---
+# --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="MI MIFTAHUSSALAM - Generator Modul Ajar KBC",
-    page_icon="❤️",
+    page_title="MI MIFTAHUSSALAM - Generator Modul Ajar",
+    page_icon="📚",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM UNTUK UI/UX & ANIMASI ---
-# Ini hanya mengubah tampilan, tidak mengubah logika kode sama sekali.
+# --- CSS CUSTOM (REVISI TAMPILAN DESKTOP) ---
 st.markdown("""
 <style>
-    /* Import Font Modern */
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    /* Font Utama: Inter (Standar UI Modern) */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* Global Font & Background */
+    /* Background Utama: Putih Bersih & Abu-abu Sangat Muda */
     .stApp {
-        font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-        color: #2d3436;
+        font-family: 'Inter', sans-serif;
+        background-color: #F8F9FA; /* Abu-abu sangat muda, tidak menyilaukan */
+        color: #212529;
     }
 
-    /* Sidebar Styling */
+    /* Sidebar: Putih Solid dengan Garis Pembatas Halus */
     section[data-testid="stSidebar"] {
-        background-color: #ffffff;
-        border-right: 1px solid #e0e0e0;
-        box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        background-color: #FFFFFF;
+        border-right: 1px solid #E9ECEF;
+        padding-top: 2rem;
     }
 
-    /* Input Fields Styling */
+    /* Judul Sidebar */
+    section[data-testid="stSidebar"] h1, 
+    section[data-testid="stSidebar"] h2, 
+    section[data-testid="stSidebar"] h3 {
+        color: #495057;
+        font-weight: 600;
+    }
+
+    /* Input Fields: Gaya Minimalis */
     .stTextInput > div > div > input, 
     .stTextArea > div > div > textarea,
-    .stSelectbox > div > div > select {
-        border-radius: 10px;
-        border: 1px solid #dfe6e9;
-        background-color: #ffffff;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    .stSelectbox > div > div > select,
+    .stDateInput > div > div > input {
+        background-color: #FFFFFF;
+        border: 1px solid #DEE2E6;
+        border-radius: 8px;
+        color: #495057;
+        box-shadow: none;
+        transition: all 0.2s ease;
     }
 
     .stTextInput > div > div > input:focus, 
-    .stTextArea > div > div > textarea:focus {
-        border-color: #00b894;
-        box-shadow: 0 0 8px rgba(0, 184, 148, 0.3);
-        transform: translateY(-2px);
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: #0D6EFD; /* Biru Profesional */
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        outline: none;
     }
 
-    /* Button Primary Styling & Animation */
+    /* Label Input */
+    .stTextInput label, .stTextArea label, .stSelectbox label {
+        color: #495057;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    /* Tombol Utama: Biru Modern */
     .stButton > button {
-        background: linear-gradient(90deg, #00b894 0%, #00cec9 100%);
+        background-color: #0D6EFD;
         color: white;
         border: none;
-        border-radius: 50px;
-        padding: 12px 24px;
+        border-radius: 8px;
+        padding: 10px 20px;
         font-weight: 600;
-        font-size: 16px;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
         width: 100%;
     }
 
     .stButton > button:hover {
-        transform: scale(1.05) translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0, 184, 148, 0.6);
+        background-color: #0B5ED7;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
     .stButton > button:active {
-        transform: scale(0.95);
+        transform: translateY(0);
+        background-color: #0A58CA;
     }
 
-    /* Title Styling */
+    /* Tombol Download: Hijau Sukses */
+    .stDownloadButton > button {
+        background-color: #198754;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+    .stDownloadButton > button:hover {
+        background-color: #157347;
+        transform: translateY(-1px);
+    }
+
+    /* Judul Halaman */
     h1 {
-        text-align: center;
-        background: -webkit-linear-gradient(45deg, #00b894, #0984e3);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        color: #212529;
         font-weight: 700;
-        margin-bottom: 10px;
-        animation: fadeInDown 1s ease-out;
+        letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
     }
 
-    /* Card Effect for Containers */
-    .css-1r6slb0 {
-        background-color: rgba(255, 255, 255, 0.6);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 20px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+    /* Card Container Effect */
+    .css-1r6slb0, .css-12w0qpk {
+        background-color: transparent;
     }
 
-    /* Status Message Styling */
+    /* Status Box */
     .stStatus {
-        border-radius: 15px;
+        border-radius: 8px;
+        border: 1px solid #E9ECEF;
     }
 
-    /* Animations */
-    @keyframes fadeInDown {
-        from { opacity: 0; transform: translateY(-20px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-
-    /* Hide default footer */
+    /* Hide Footer Streamlit */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
+
+    /* Animasi Halus untuk Muncul */
+    .element-container {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 """, unsafe_allow_html=True)
 
 # Konstanta API
-# PENTING: Dalam produksi, gunakan st.secrets("NVIDIA_API_KEY")
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
-# --- FUNGSI HELPER ---
+# --- FUNGSI HELPER (TIDAK BERUBAH LOGIKANYA) ---
 
 def get_ai_response_kbc(prompt, system_instruction):
     headers = {
@@ -153,22 +177,20 @@ def get_ai_response_kbc(prompt, system_instruction):
 
     while attempt < max_retries:
         try:
-            # Status box dengan animasi custom via CSS sudah diterapkan global
-            with st.status(f"❤️ AI (Lagos AI 9.1) Sedang Merenung... (Sabar ya, sedang memikirkan cinta)", expanded=True) as status:
-                # Timeout 300 detik
+            with st.status(f"🤖 AI sedang menyusun dokumen...", expanded=True) as status:
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
 
                 if response.status_code == 200:
                     result = response.json()
                     content = result['choices'][0]['message']['content']
-                    status.update(label="✅ Kerjaan Saya Beres! Dokumen siap cinta.", state="complete", expanded=False)
+                    status.update(label="✅ Dokumen berhasil dibuat!", state="complete", expanded=False)
                     return content
                 else:
                     st.error(f"API Error: {response.status_code}")
                     status.update(label="❌ Gagal", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
-            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti kalau gak males.")
+            st.error("Timeout: Server AI sedang sibuk. Coba lagi sebentar.")
             return None
         except Exception as e:
             st.error(f"Koneksi Error: {str(e)}")
@@ -206,32 +228,27 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
         # --- 1. HEADER MADRASAH ---
         if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes", "LKPD"]:
-            # Baris 1
             p1 = doc.add_paragraph()
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r1 = p1.add_run(f"PEMERINTAH {school_data['kabupaten'].upper()}\n")
             set_font_safe(r1, size=14, bold=True)
 
-            # Baris 2
             p2 = doc.add_paragraph()
             p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r2 = p2.add_run(f"KEMENTRIAN AGAMA ISLAM\nMADRASAH {school_data['jenis'].upper()} {school_data['nama_madrasah'].upper()}\n")
             set_font_safe(r2, size=12, bold=True)
 
-            # Baris 3
             p3 = doc.add_paragraph()
             p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r3 = p3.add_run(f"Alamat: {school_data['alamat']} | Telp: {school_data['telp']}")
             set_font_safe(r3, size=10)
 
-            # Garis
             p_line = doc.add_paragraph()
             r_line = p_line.add_run("_" * 70)
             set_font_safe(r_line, size=10)
             p_line.paragraph_format.space_after = Pt(0)
             p_line.paragraph_format.space_before = Pt(0)
 
-            # Judul Dokumen
             p_title = doc.add_paragraph()
             p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p_title.paragraph_format.space_before = Pt(12)
@@ -240,11 +257,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
             set_font_safe(r_title_1, size=14, bold=True)
             r_title_1.underline = True
 
-            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']} - {school_data['Penyusun']}")
+            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']}")
             set_font_safe(r_title_2, size=14, bold=True)
             r_title_2.underline = True
 
-            doc.add_paragraph() # Spacer
+            doc.add_paragraph()
 
         # --- 2. PARSE KONTEN ---
         lines = content.split('\n')
@@ -256,7 +273,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
             line = lines[i]
             stripped = line.strip()
 
-            # Deteksi Tabel
             if stripped.startswith('|') and not re.match(r'^\|[\s\-:]+\|$', stripped):
                 in_table_mode = True
 
@@ -272,7 +288,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     i += 1
                     continue
                 else:
-                    # Render Tabel
                     if table_buffer:
                         try:
                             max_cols = max(len(row) for row in table_buffer)
@@ -304,9 +319,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     i += 1
                     continue
 
-                # Buat Paragraf Baru
                 p = doc.add_paragraph()
-
                 is_bold = False
                 font_size = 12
                 final_text = stripped
@@ -330,13 +343,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
                 else:
                     final_text = clean_markdown_symbols(stripped)
 
-                # Tambahkan ke Paragraf
                 r = p.add_run(final_text)
                 set_font_safe(r, size=font_size, bold=is_bold)
 
             i += 1
 
-        # Flush sisa tabel
         if in_table_mode and table_buffer:
             try:
                 max_cols = max(len(row) for row in table_buffer)
@@ -389,86 +400,87 @@ def create_word_doc_kbc(content, doc_type, school_data):
         st.code(traceback.format_exc())
         return None
 
-# --- UI STREAMLIT (Tampilan Diperbarui) ---
+# --- UI STREAMLIT ---
 
-# Header dengan animasi
-st.title("❤️ MI MIFTAHUSSALAM GENERATED Modul Ajar")
-st.markdown("""
-<div style='text-align: center; color: #636e72; margin-bottom: 20px;'>
-    <p>✨ Bug <code>AttributeError</code> sudah diperbaiki. Menggunakan Qwen 397B dengan cinta sepenuh hati.</p>
-</div>
-""", unsafe_allow_html=True)
+# Header Sederhana dan Bersih
+col_header, _ = st.columns([3, 1])
+with col_header:
+    st.title("📚 Generator Modul Ajar KBC")
+    st.caption("MI MIFTAHUSSALAM | Sistem Otomatisasi Dokumen Pendidikan")
 
-# Layout Kolom untuk memisahkan Sidebar dan Konten Utama dengan lebih rapi
-col_sidebar, col_main = st.columns([1, 3])
+st.markdown("---")
+
+# Layout Utama
+col_sidebar, col_main = st.columns([1, 2.5])
 
 with col_sidebar:
-    with st.container():
-        st.markdown("### 🏫 Data Madrasah")
-        nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
-        jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
-        kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
-        alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46,Pasirmulya, Bogor Barat")
-        telp = st.text_input("Telp", "")
+    st.markdown("### 🏫 Data Madrasah")
+    nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
+    jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
+    kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
+    alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46,Pasirmulya, Bogor Barat", height=80)
+    telp = st.text_input("Telp", "")
 
-        st.markdown("### 👤 Data Guru")
-        kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
-        nip_kepala = st.text_input("NIP Kepala", "-")
-        nama_guru = st.text_input("Nama Guru", "..")
-        nip_guru = st.text_input("NIP Guru", "-")
-        kota = st.text_input("Kota", "Bogor")
-        tanggal_buat = st.date_input("Tanggal")
+    st.markdown("### 👤 Data Guru")
+    kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
+    nip_kepala = st.text_input("NIP Kepala", "-")
+    nama_guru = st.text_input("Nama Guru", "..")
+    nip_guru = st.text_input("NIP Guru", "-")
+    kota = st.text_input("Kota", "Bogor")
+    tanggal_buat = st.date_input("Tanggal")
 
 with col_main:
-    with st.container():
-        st.markdown("### 📝 Konten Pembelajaran")
-        # Layout grid kecil untuk input konten
-        c1, c2 = st.columns(2)
-        with c1:
-            doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
-            mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
-        with c2:
-            kelas = st.text_input("Kelas / Fase", "VI / Fase C")
-            tahun_ajaran = st.text_input("Tahun Ajaran", "2026/2027")
+    st.markdown("### 📝 Konten Pembelajaran")
 
-        materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=150)
+    c1, c2 = st.columns(2)
+    with c1:
+        doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
+        mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
 
-        # Tombol dengan animasi CSS
-        btn = st.button("✨ Generate Dokumen KBC 2026", type="primary", use_container_width=True)
+    with c2:
+        kelas = st.text_input("Kelas / Fase", "VI / Fase C")
+        tahun_ajaran = st.text_input("Tahun Ajaran", "2026/2027")
 
-        if btn:
-            if not nama_madrasah or not materi:
-                st.warning("⚠️ Mohon lengkapi data madrasah dan materi ya.")
-            else:
-                data = {
-                    "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten,
-                    "alamat": alamat, "telp": telp, "kepala_madrasah": kepala_madrasah,
-                    "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
-                    "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
-                    "mapel": mapel, "kelas": kelas, "tahun_ajaran": tahun_ajaran
-                }
+    materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=150)
 
-                sys_prompt = """
-                Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. 
-                Fokus: Cinta kepada Allah dan Rasul-Nya, Cinta kepada Ilmu, Cinta Kepada Diri Sendiri, Cinta Kepada Sesama, Cinta Kepada Alam dan Lingkungan.
-                Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
-                Jangan ada kode blok (```). Langsung isi dokumen.
-                Jika CP: Fokus pada elemen dan kata kunci operasional.
-                """
+    st.markdown("<br>", unsafe_allow_html=True)
 
-                user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
+    btn = st.button("✨ Buat Dokumen Sekarang", type="primary", use_container_width=True)
 
-                content = get_ai_response_kbc(user_prompt, sys_prompt)
+    if btn:
+        if not nama_madrasah or not materi:
+            st.warning("⚠️ Mohon lengkapi data madrasah dan materi terlebih dahulu.")
+        else:
+            data = {
+                "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten,
+                "alamat": alamat, "telp": telp, "kepala_madrasah": kepala_madrasah,
+                "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
+                "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
+                "mapel": mapel, "kelas": kelas, "tahun_ajaran": tahun_ajaran
+            }
 
-                if content:
-                    st.success("🎉 Sedang membuat file Word dengan penuh kasih sayang...")
-                    buffer = create_word_doc_kbc(content, doc_type, data)
-                    if buffer:
-                        fname = f"KBC2026_{doc_type}_{mapel}_{kelas}.docx"
-                        st.download_button(
-                            label="📥 Download Word Sekarang", 
-                            data=buffer, 
-                            file_name=fname, 
-                            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                            use_container_width=True
-                        )
+            sys_prompt = """
+            Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. 
+            Fokus: Cinta kepada Allah dan Rasul-Nya, Cinta kepada Ilmu, Cinta Kepada Diri Sendiri, Cinta Kepada Sesama, Cinta Kepada Alam dan Lingkungan.
+            Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
+            Jangan ada kode blok (```). Langsung isi dokumen.
+            Jika CP: Fokus pada elemen dan kata kunci operasional.
+            penyusun:ganti sesuai nama guru.
+            """
+
+            user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
+
+            content = get_ai_response_kbc(user_prompt, sys_prompt)
+
+            if content:
+                st.success("✅ Dokumen berhasil dibuat! Silakan unduh di bawah ini.")
+                buffer = create_word_doc_kbc(content, doc_type, data)
+                if buffer:
+                    fname = f"KBC2026_{doc_type}_{mapel}_{kelas}.docx"
+                    st.download_button(
+                        label="📥 Unduh File Word (.docx)", 
+                        data=buffer, 
+                        file_name=fname, 
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        use_container_width=True
+                    )
