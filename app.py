@@ -100,7 +100,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             # Baris 1
             p1 = doc.add_paragraph()
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            r1 = p1.add_run(f"PEMERINTAH KABUPATEN {school_data['kabupaten'].upper()}\n")
+            r1 = p1.add_run(f"PEMERINTAH {school_data['kabupaten'].upper()}\n")
             set_font_safe(r1, size=14, bold=True)
 
             # Baris 2
@@ -289,7 +289,7 @@ st.markdown("**Bug `AttributeError` sudah diperbaiki.** Menggunakan Qwen 397B de
 
 with st.sidebar:
     st.header("🏫 Data Madrasah")
-    nama_madrasah = st.text_input("Nama Madrasah", "MI/MTs/MA Al-Hikmah")
+    nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
     jenis = st.selectbox("Jenjang", ["MI", "MTs", "MA"])
     kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
     alamat = st.text_area("Alamat", "Jl. Pendidikan No. 1")
@@ -306,7 +306,7 @@ with st.sidebar:
     st.subheader("📝 Konten Pembelajaran")
     doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "KKTP"])
     mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
-    kelas = st.text_input("Kelas / Fase", "VII / Fase D")
+    kelas = st.text_input("Kelas / Fase", "VI / Fase C")
     materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=100)
 
 btn = st.button("✨ Generate Dokumen KBC 2026", type="primary", use_container_width=True)
@@ -324,8 +324,8 @@ if btn:
         }
 
         sys_prompt = """
-        Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. 
-        Fokus: Well-being, Relationship, Meaning.
+        Anda adalah Ahli Kurikulum Berbasis Cinta dan deep learning (KBC) 2026. 
+        Fokus: Mindful Learning, Meaningful Learning, joyful Learning
         Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
         Jangan ada kode blok (```). Langsung isi dokumen.
         Jika CP: Fokus pada elemen dan kata kunci operasional.
