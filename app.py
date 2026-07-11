@@ -10,7 +10,7 @@ import time
 
 # --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="Generator KBC 2026 (Stable)",
+    page_title="Generator KBC 2026 (Qwen Stable)",
     page_icon="❤️",
     layout="wide"
 )
@@ -19,14 +19,13 @@ st.set_page_config(
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 
-# PERBAIKAN 1: Ganti Model ke yang lebih stabil dan cepat (Llama 3.1 70B)
-# Model sebelumnya mungkin terlalu berat atau sedang down, menyebabkan timeout.
-MODEL_NAME = "meta/llama-3.1-70b-instruct"
+# PERBAIKAN 1: Kembali ke model Qwen sesuai request
+MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
 # --- FUNGSI HELPER ---
 
 def get_ai_response_kbc(prompt, system_instruction):
-    """Mengambil respon AI dengan model stabil dan timeout lebih lama"""
+    """Mengambil respon AI dengan timeout 300 detik"""
     headers = {
         "Authorization": f"Bearer {NVIDIA_API_KEY}",
         "Content-Type": "application/json"
@@ -49,9 +48,9 @@ def get_ai_response_kbc(prompt, system_instruction):
 
     while attempt < max_retries:
         try:
-            # PERBAIKAN 2: Timeout diperpanjang menjadi 120 detik
-            with st.status(f"❤️ AI Sedang Merancang Pembelajaran Berbasis Cinta (Mohon Tunggu)...", expanded=True) as status:
-                response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=120)
+            # PERBAIKAN 2: Timeout diperpanjang menjadi 300 detik (5 menit)
+            with st.status(f"❤️ AI (Qwen 397B) Sedang Merancang Pembelajaran Berbasis Cinta (Mohon Tunggu hingga 5 menit)...", expanded=True) as status:
+                response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
 
                 if response.status_code == 200:
                     result = response.json()
@@ -62,24 +61,26 @@ def get_ai_response_kbc(prompt, system_instruction):
                     st.warning("Server AI sibuk (Timeout). Mencoba lagi...")
                     status.update(label="⏳ Retry...", state="running")
                     attempt += 1
-                    time.sleep(3)
+                    time.sleep(5)
                 else:
                     st.error(f"API Error: {response.status_code} - {response.text}")
                     status.update(label="❌ Gagal", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
-            st.warning("Koneksi terputus karena waktu habis. Mencoba lagi...")
+            st.warning("Koneksi terputus karena waktu habis (Timeout 300s). Mencoba lagi...")
             attempt += 1
-            time.sleep(3)
+            time.sleep(5)
         except Exception as e:
             st.error(f"Koneksi Error: {str(e)}")
             attempt += 1
-            time.sleep(3)
+            time.sleep(5)
 
-    st.error("Gagal mendapatkan respon AI setelah beberapa percobaan. Periksa koneksi atau coba lagi nanti.")
+    st.error("Gagal mendapatkan respon AI setelah beberapa percobaan. Model Qwen 397B mungkin sedang sangat sibuk.")
     return None
 
 def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
+    """Helper function untuk set font dengan aman"""
+    if run is None: return
     run.font.name = font_name
     run.font.size = Pt(size)
     run.bold = bold
@@ -89,15 +90,25 @@ def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
     rFonts.set(qn('w:cs'), font_name)
 
 def clean_markdown_symbols(text):
+    """Membersihkan simbol markdown"""
     if not text: return ""
+    # Hapus bold/italic
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     text = re.sub(r'\*(.*?)\*', r'\1', text)
+    # Hapus heading markers
     text = re.sub(r'^#+\s*', '', text)
+    # Hapus list markers awal (akan ditangani logic terpisah)
     text = re.sub(r'^[-*]\s+', '', text)
+    # Bersihkan spasi
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
 def create_word_doc_kbc(content, doc_type, school_data):
+    """
+    VERSI PERBAIKAN BUG FATAL:
+    Logika parsing diubah total agar tidak pernah memanggil .add_run() pada objek Run.
+    Semua teks ditambahkan via paragraph.add_run().
+    """
     try:
         doc = Document()
         style = doc.styles['Normal']
@@ -107,7 +118,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.paragraph_format.space_after = Pt(6)
 
         # --- 1. HEADER MADRASAH ---
-        if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes"]:
+        if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes", "KKTP"]:
             p1 = doc.add_paragraph()
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r1 = p1.add_run(f"PEMERINTAH KABUPATEN {school_data['kabupaten'].upper()}\n")
@@ -140,7 +151,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
             doc.add_paragraph()
 
-        # --- 2. PARSE KONTEN ---
+        # --- 2. PARSE KONTEN (LOGIKA DIPERBAIKI) ---
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
@@ -150,14 +161,17 @@ def create_word_doc_kbc(content, doc_type, school_data):
             line = lines[i]
             stripped = line.strip()
 
+            # Deteksi Awal Tabel
             if stripped.startswith('|') and not re.match(r'^\|[\s\-:]+\|$', stripped):
                 in_table_mode = True
 
             if in_table_mode:
+                # Skip baris pemisah tabel (|---|)
                 if re.match(r'^\|[\s\-:]+\|$', stripped):
                     i += 1
                     continue
 
+                # Jika masih format tabel
                 if stripped.startswith('|') and stripped.endswith('|'):
                     raw_cells = stripped.split('|')[1:-1]
                     cells = [clean_markdown_symbols(c.strip()) for c in raw_cells]
@@ -165,6 +179,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     i += 1
                     continue
                 else:
+                    # Tabel Berakhir -> Render Tabel
                     if table_buffer:
                         try:
                             max_cols = max(len(row) for row in table_buffer)
@@ -189,18 +204,25 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
                         table_buffer = []
                         in_table_mode = False
+                    # Lanjut proses baris ini sebagai teks biasa (fall-through)
 
+            # Proses Teks Biasa (BUKAN TABEL)
             if not in_table_mode:
                 if not stripped:
                     doc.add_paragraph()
                     i += 1
                     continue
 
+                # PERBAIKAN BUG: Selalu buat paragraf baru, jangan reuse object run lama
                 p = doc.add_paragraph()
-                final_text = clean_markdown_symbols(stripped)
+
+                # Tentukan gaya teks
                 is_bold = False
                 font_size = 12
+                final_text = stripped
+                is_list = False
 
+                # Cek Heading
                 if stripped.startswith('# '):
                     final_text = clean_markdown_symbols(stripped[2:])
                     is_bold = True
@@ -212,30 +234,39 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     font_size = 13
                     p.paragraph_format.space_before = Pt(6)
 
+                # Cek List
                 if stripped.startswith('- ') or stripped.startswith('* '):
+                    is_list = True
                     p.style = 'List Bullet'
                     final_text = clean_markdown_symbols(stripped[2:])
+                else:
+                    final_text = clean_markdown_symbols(stripped)
 
+                # TAMBAHKAN TEKS KE PARAGRAF (Bukan ke run lama)
                 r = p.add_run(final_text)
                 set_font_safe(r, size=font_size, bold=is_bold)
 
             i += 1
 
+        # Flush sisa tabel jika ada di akhir
         if in_table_mode and table_buffer:
-            max_cols = max(len(row) for row in table_buffer)
-            table = doc.add_table(rows=len(table_buffer), cols=max_cols)
-            table.style = 'Table Grid'
-            for r_idx, row_data in enumerate(table_buffer):
-                row = table.rows[r_idx]
-                for c_idx, cell_text in enumerate(row_data):
-                     if c_idx < len(row.cells):
-                        cell = row.cells[c_idx]
-                        cell.text = cell_text
-                        for paragraph in cell.paragraphs:
-                            for run in paragraph.runs:
-                                set_font_safe(run, size=11, bold=(r_idx==0))
+            try:
+                max_cols = max(len(row) for row in table_buffer)
+                table = doc.add_table(rows=len(table_buffer), cols=max_cols)
+                table.style = 'Table Grid'
+                for r_idx, row_data in enumerate(table_buffer):
+                    row = table.rows[r_idx]
+                    for c_idx, cell_text in enumerate(row_data):
+                         if c_idx < len(row.cells):
+                            cell = row.cells[c_idx]
+                            cell.text = cell_text
+                            for paragraph in cell.paragraphs:
+                                for run in paragraph.runs:
+                                    set_font_safe(run, size=11, bold=(r_idx==0))
+            except Exception as e:
+                st.error(f"Error render tabel akhir: {e}")
 
-        # --- 3. TANDA TANGAN (Khusus RPP/Modul) ---
+        # --- 3. TANDA TANGAN ---
         if doc_type in ["RPP", "Modul Ajar"]:
             doc.add_paragraph("\n")
             sig_table = doc.add_table(rows=1, cols=2)
@@ -272,10 +303,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
 # --- UI STREAMLIT ---
 
-st.title("❤️ Generator Dokumen KBC 2026 (Stable)")
+st.title("❤️ Generator Dokumen KBC 2026 (Qwen 397B)")
 st.markdown("""
 **Kurikulum Berbasis Cinta (KBC) 2026**
-Model AI telah diperbarui ke **Llama 3.1 70B** untuk kecepatan dan stabilitas maksimal.
+Menggunakan model **Qwen 3.5 397B** (High Intelligence). 
+⚠️ *Proses mungkin memakan waktu hingga 3-5 menit karena ukuran model yang sangat besar.*
 """)
 
 with st.sidebar:
@@ -295,7 +327,7 @@ with st.sidebar:
     tanggal_buat = st.date_input("Tanggal")
 
     st.subheader("📝 Konten Pembelajaran")
-    # PERBAIKAN 3: CP dikembalikan ke dalam list pilihan
+    # PERBAIKAN 3: CP dikembalikan
     doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "KKTP"])
     mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
     kelas = st.text_input("Kelas / Fase", "VII / Fase D")
@@ -303,7 +335,7 @@ with st.sidebar:
     st.info("💡 KBC 2026 akan otomatis menyusun langkah pembelajaran yang menyentuh hati.")
     materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=100)
 
-btn = st.button("✨ Generate Dokumen KBC 2026", type="primary", use_container_width=True)
+btn = st.button("✨ Generate Dokumen KBC 2026 (Qwen)", type="primary", use_container_width=True)
 
 if btn:
     if not nama_madrasah or not materi:
@@ -330,7 +362,7 @@ if btn:
         - Bahasa harus humanis dan menyentuh hati.
 
         Jika jenis dokumen adalah 'CP' (Capaian Pembelajaran):
-        Fokuskan pada elemen, sub-elemen, dan kata kunci operasional yang sesuai dengan fase perkembangan anak, disajikan dengan bahasa yang memotivasi.
+        Fokuskan pada elemen, sub-elemen, dan kata kunci operasional yang sesuai dengan fase perkembangan anak.
         """
 
         user_prompt = f"""
