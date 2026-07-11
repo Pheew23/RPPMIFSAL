@@ -96,7 +96,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.paragraph_format.space_after = Pt(6)
 
         # --- 1. HEADER MADRASAH (DIPERBAIKI) ---
-        if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes", "KKTP"]:
+        if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes", "LKPD"]:
             # Baris 1
             p1 = doc.add_paragraph()
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -304,7 +304,7 @@ with st.sidebar:
     tanggal_buat = st.date_input("Tanggal")
 
     st.subheader("📝 Konten Pembelajaran")
-    doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "KKTP"])
+    doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
     mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
     kelas = st.text_input("Kelas / Fase", "VI / Fase C")
     materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=100)
