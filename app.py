@@ -16,43 +16,75 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- CSS CUSTOM (REVISI TAMPILAN DESKTOP) ---
+# --- CSS CUSTOM DENGAN DUKUNGAN DARK MODE ---
 st.markdown("""
 <style>
-    /* Font Utama: Inter (Standar UI Modern) */
+    /* Import Font Inter */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-    /* Background Utama: Putih Bersih & Abu-abu Sangat Muda */
+    /* DEFINISI VARIABEL WARNA (DEFAULT: LIGHT MODE) */
+    :root {
+        --bg-color: #F8F9FA;
+        --sidebar-bg: #FFFFFF;
+        --text-main: #212529;
+        --text-muted: #6C757D;
+        --border-color: #DEE2E6;
+        --input-bg: #FFFFFF;
+        --card-bg: #FFFFFF;
+        --primary-color: #0D6EFD;
+        --primary-hover: #0B5ED7;
+        --success-color: #198754;
+        --shadow: 0 2px 8px rgba(0,0,0,0.08);
+        --code-bg: #F8F9FA;
+    }
+
+    /* DARK MODE OVERRIDES */
+    [data-theme="dark"] {
+        --bg-color: #121212;
+        --sidebar-bg: #1E1E1E;
+        --text-main: #E0E0E0;
+        --text-muted: #A0A0A0;
+        --border-color: #333333;
+        --input-bg: #2C2C2C;
+        --card-bg: #1E1E1E;
+        --primary-color: #3D8BFD;
+        --primary-hover: #5A9FFF;
+        --success-color: #2ECC71;
+        --shadow: 0 2px 8px rgba(0,0,0,0.3);
+        --code-bg: #2C2C2C;
+    }
+
+    /* TERAPKAN VARIABEL KE APLIKASI */
     .stApp {
         font-family: 'Inter', sans-serif;
-        background-color: #F8F9FA; /* Abu-abu sangat muda, tidak menyilaukan */
-        color: #212529;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Sidebar: Putih Solid dengan Garis Pembatas Halus */
+    /* SIDEBAR */
     section[data-testid="stSidebar"] {
-        background-color: #FFFFFF;
-        border-right: 1px solid #E9ECEF;
-        padding-top: 2rem;
+        background-color: var(--sidebar-bg);
+        border-right: 1px solid var(--border-color);
+        transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
-    /* Judul Sidebar */
     section[data-testid="stSidebar"] h1, 
     section[data-testid="stSidebar"] h2, 
-    section[data-testid="stSidebar"] h3 {
-        color: #495057;
-        font-weight: 600;
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] label {
+        color: var(--text-main);
     }
 
-    /* Input Fields: Gaya Minimalis */
+    /* INPUT FIELDS */
     .stTextInput > div > div > input, 
     .stTextArea > div > div > textarea,
     .stSelectbox > div > div > select,
     .stDateInput > div > div > input {
-        background-color: #FFFFFF;
-        border: 1px solid #DEE2E6;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
         border-radius: 8px;
-        color: #495057;
         box-shadow: none;
         transition: all 0.2s ease;
     }
@@ -60,91 +92,126 @@ st.markdown("""
     .stTextInput > div > div > input:focus, 
     .stTextArea > div > div > textarea:focus,
     .stSelectbox > div > div > select:focus {
-        border-color: #0D6EFD; /* Biru Profesional */
-        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.2);
         outline: none;
     }
 
-    /* Label Input */
-    .stTextInput label, .stTextArea label, .stSelectbox label {
-        color: #495057;
-        font-weight: 500;
-        font-size: 0.9rem;
-    }
-
-    /* Tombol Utama: Biru Modern */
+    /* BUTTONS */
     .stButton > button {
-        background-color: #0D6EFD;
+        background-color: var(--primary-color);
         color: white;
         border: none;
         border-radius: 8px;
         padding: 10px 20px;
         font-weight: 600;
-        font-size: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
         transition: all 0.2s ease;
         width: 100%;
     }
 
     .stButton > button:hover {
-        background-color: #0B5ED7;
+        background-color: var(--primary-hover);
         transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     }
 
-    .stButton > button:active {
-        transform: translateY(0);
-        background-color: #0A58CA;
-    }
-
-    /* Tombol Download: Hijau Sukses */
     .stDownloadButton > button {
-        background-color: #198754;
+        background-color: var(--success-color);
         color: white;
         border: none;
         border-radius: 8px;
         font-weight: 600;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow);
         transition: all 0.2s ease;
     }
     .stDownloadButton > button:hover {
-        background-color: #157347;
+        filter: brightness(1.1);
         transform: translateY(-1px);
     }
 
-    /* Judul Halaman */
-    h1 {
-        color: #212529;
+    /* HEADINGS */
+    h1, h2, h3, h4 {
+        color: var(--text-main);
         font-weight: 700;
-        letter-spacing: -0.5px;
-        margin-bottom: 0.5rem;
     }
 
-    /* Card Container Effect */
-    .css-1r6slb0, .css-12w0qpk {
-        background-color: transparent;
+    .stCaption {
+        color: var(--text-muted);
     }
 
-    /* Status Box */
-    .stStatus {
-        border-radius: 8px;
-        border: 1px solid #E9ECEF;
+    /* TOGGLE SWITCH CUSTOM */
+    .theme-toggle-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        background: var(--card-bg);
+        padding: 8px 15px;
+        border-radius: 50px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
     }
 
-    /* Hide Footer Streamlit */
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
+    .theme-toggle-container:hover {
+        transform: scale(1.05);
+    }
 
-    /* Animasi Halus untuk Muncul */
+    .theme-icon {
+        font-size: 1.2rem;
+    }
+
+    /* ANIMASI FADE IN */
     .element-container {
-        animation: fadeIn 0.5s ease-out;
+        animation: fadeIn 0.4s ease-out;
     }
 
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    /* HIDE DEFAULT STREAMLIT FOOTER */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
 </style>
+
+<!-- JAVASCRIPT UNTUK TOGGLE MODE -->
+<script>
+    // Cek apakah ada preferensi tersimpan
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    function toggleTheme() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+
+        // Update icon text (opsional, handled by React rerender usually, but this helps visual feedback)
+        const btn = document.getElementById('theme-toggle-btn');
+        if(btn) {
+            btn.innerHTML = newTheme === 'light' ? '☀️ Mode Terang' : '🌙 Mode Gelap';
+        }
+    }
+</script>
+""", unsafe_allow_html=True)
+
+# --- UI TOGGLE BUTTON (HTML Custom) ---
+# Kita buat tombol custom yang memanggil fungsi JS di atas
+st.markdown("""
+<div style="text-align: right;">
+    <div id="theme-toggle-btn" class="theme-toggle-container" onclick="toggleTheme()">
+        <span class="theme-icon">🌙</span>
+        <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">Mode Gelap</span>
+    </div>
+</div>
+<br>
 """, unsafe_allow_html=True)
 
 # Konstanta API
@@ -152,7 +219,7 @@ NVIDIA_API_KEY = "nvapi-0hGDKTuHAqhltjmBi9STa2BKpG8F-10wj_wDe-jCCE8XY4VUAsXsV3bh
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
-# --- FUNGSI HELPER (TIDAK BERUBAH LOGIKANYA) ---
+# --- FUNGSI HELPER (LOGIKA TETAP SAMA) ---
 
 def get_ai_response_kbc(prompt, system_instruction):
     headers = {
@@ -402,7 +469,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
 # --- UI STREAMLIT ---
 
-# Header Sederhana dan Bersih
+# Header
 col_header, _ = st.columns([3, 1])
 with col_header:
     st.title("📚 Generator Modul Ajar KBC")
