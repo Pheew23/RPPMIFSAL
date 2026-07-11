@@ -454,7 +454,8 @@ with col_main:
                 Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
                 Jangan ada kode blok (```). Langsung isi dokumen.
                 Jika CP: Fokus pada elemen dan kata kunci operasional.
-                penyusun:ganti sesuai nama guru.
+                Penyusun:ganti sesuaikan dengan input nama guru.
+                satuan pendidikan sesuaikan dengan input nama madrasah.
                 """
 
                 user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
