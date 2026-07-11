@@ -10,7 +10,7 @@ import time
 
 # --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="Generator Modul Ajar (revisi 4)",
+    page_title="MI MIFTAHUSSALAM generated Modul Ajar (revisi 4)",
     page_icon="❤️",
     layout="wide"
 )
@@ -41,25 +41,25 @@ def get_ai_response_kbc(prompt, system_instruction):
     }
 
     max_retries = 1
-    attempt = 0
+    attempt = 1
 
     while attempt < max_retries:
         try:
-            with st.status(f"❤️ AI (Lagos AI 9.1) Sedang Berpikir... (Timeout 300s)", expanded=True) as status:
+            with st.status(f"❤️ AI (Lagos AI 9.1) Sedang Merenung... (Tunggu ya sekitar 15-45 hari)", expanded=True) as status:
                 # Timeout 300 detik sesuai request
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
 
                 if response.status_code == 200:
                     result = response.json()
                     content = result['choices'][0]['message']['content']
-                    status.update(label="✅ Konsep KBC 2026 Siap!", state="complete", expanded=False)
+                    status.update(label="✅ Kerjaan Saya Beres ya!", state="complete", expanded=False)
                     return content
                 else:
                     st.error(f"API Error: {response.status_code}")
                     status.update(label="❌ Gagal", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
-            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti atau gunakan model yang lebih kecil.")
+            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti kalau gak males.")
             return None
         except Exception as e:
             st.error(f"Koneksi Error: {str(e)}")
@@ -106,7 +106,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             # Baris 2
             p2 = doc.add_paragraph()
             p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            r2 = p2.add_run(f"DINAS PENDIDIKAN DAN KEBUDAYAAN\nMADRASAH {school_data['jenis'].upper()} {school_data['nama_madrasah'].upper()}\n")
+            r2 = p2.add_run(f"KEMENTRIAN AGAMA ISLAM\nMADRASAH {school_data['jenis'].upper()} {school_data['nama_madrasah'].upper()}\n")
             set_font_safe(r2, size=12, bold=True)
 
             # Baris 3
@@ -292,8 +292,8 @@ with st.sidebar:
     nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
     jenis = st.selectbox("Jenjang", ["MI", "MTs", "MA"])
     kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
-    alamat = st.text_area("Alamat", "Jl. Pendidikan No. 1")
-    telp = st.text_input("Telp", "0231-1234567")
+    alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46,Pasirmulya, Bogor Barat")
+    telp = st.text_input("Telp", "")
 
     st.subheader("👤 Data Guru")
     kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
@@ -329,6 +329,7 @@ if btn:
         Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
         Jangan ada kode blok (```). Langsung isi dokumen.
         Jika CP: Fokus pada elemen dan kata kunci operasional.
+        tabel nama: isi sesuai nama_guru
         """
 
         user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
