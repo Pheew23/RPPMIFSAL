@@ -1,265 +1,303 @@
 import streamlit as st
-import os
-from dotenv import load_dotenv
+import requests
+import json
 from docx import Document
-from docx.shared import Pt, Inches
+from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-import io
+from docx.oxml.ns import qn
+import base64
+from io import BytesIO
 
-# --- KONFIGURASI & LOAD ENV ---
-load_dotenv()
-
-# Konfigurasi Halaman
+# --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="Generator KBC 2026 | NVIDIA NIM Powered",
-    page_icon="🚀",
+    page_title="Generator Dokumen Madrasah AI",
+    page_icon="📚",
     layout="wide"
 )
 
-# Ambil Kredensial dari .env
-api_key = os.getenv("NVIDIA_API_KEY")
-base_url = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
-model_name = os.getenv("NVIDIA_MODEL_NAME", "qwen/qwen3.5-397b-a17b")
+# Konstanta API NVIDIA
+NVIDIA_API_KEY = "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"
+NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
-# Validasi Awal
-if not api_key:
-    st.error("⚠️ **API Key NVIDIA tidak ditemukan!** Silakan cek file `.env` Anda.")
-    st.stop()
+# --- FUNGSI HELPER ---
 
-# Inisialisasi Client OpenAI (Kompatibel dengan NVIDIA NIM)
-client = OpenAI(
-    api_key=api_key,
-    base_url=base_url
-)
+def get_ai_response(prompt, system_instruction):
+    """Mengirim request ke NVIDIA NIM API"""
+    headers = {
+        "Authorization": f"Bearer {NVIDIA_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-# --- FUNGSI: GENERATOR DOKUMEN WORD (.docx) ---
-def create_word_doc(title, content_markdown, teacher_name, head_name, doc_type):
+    payload = {
+        "model": MODEL_NAME,
+        "messages": [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": prompt}
+        ],
+        "temperature": 0.7,
+        "top_p": 0.7,
+        "max_tokens": 4096,
+        "stream": False
+    }
+
+    try:
+        response = requests.post(NVIDIA_API_URL, headers=headers, json=payload)
+        response.raise_for_status()
+        result = response.json()
+        return result['choices'][0]['message']['content']
+    except Exception as e:
+        st.error(f"Terjadi kesalahan saat menghubungi AI: {str(e)}")
+        return None
+
+def create_word_doc(content, doc_type, school_data):
+    """Membuat file .docx yang rapi dari konten Markdown/Text"""
     doc = Document()
 
-    # Set Font Global (Times New Roman, 12pt)
+    # Style Dasar
     style = doc.styles['Normal']
     font = style.font
     font.name = 'Times New Roman'
     font.size = Pt(12)
 
-    # 1. Judul Dokumen (Tengah, Bold, Uppercase)
-    header = doc.add_heading(title.upper(), 0)
-    header.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    header.runs[0].font.name = 'Times New Roman'
-    header.runs[0].font.size = Pt(14)
-    header.runs[0].font.bold = True
+    # 1. KOPI SURAT (Khusus RPP/Modul Ajar)
+    if doc_type in ["RPP", "Modul Ajar"]:
+        # Judul Kop
+        header = doc.add_paragraph()
+        header.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = header.add_run(f"PEMERINTAH KABUPATEN {school_data['kabupaten'].upper()}\n")
+        run.bold = True
+        run.font.size = Pt(14)
 
-    # Garis Bawah Judul (Opsional, untuk estetika resmi)
-    p_underline = doc.add_paragraph()
-    p_underline.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run_underline = p_underline.add_run("_" * 60)
-    run_underline.font.size = Pt(10)
+        sub_header = doc.add_paragraph()
+        sub_header.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run2 = sub_header.add_run(f"DINAS PENDIDIKAN DAN KEBUDAYAAN\nMADRASAH {school_data['jenis'].upper()} {school_data['nama_madrasah'].upper()}\n")
+        run2.bold = True
+        run2.font.size = Pt(12)
 
-    # 2. Info Dokumen
-    doc.add_paragraph(f"Jenis Dokumen: {doc_type}", style='Heading 2')
-    doc.add_paragraph(f"Kurikulum: Kurikulum Berbasis Cinta (KBC) 2026")
+        address = doc.add_paragraph()
+        address.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        address.add_run(f"Alamat: {school_data['alamat']} | Telp: {school_data['telp']}")
+        address.font.size = Pt(10)
 
-    # 3. Parsing Konten Markdown ke DOCX
-    lines = content_markdown.split('\n')
-    current_list = None
+        doc.add_paragraph("_" * 70) # Garis pemisah
+
+        # Judul Dokumen
+        title = doc.add_paragraph()
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        title_run = title.add_run(f"{doc_type.upper()}\n{school_data['mapel']} - {school_data['kelas']}")
+        title_run.bold = True
+        title_run.font.size = Pt(14)
+        title_run.underline = True
+        doc.add_paragraph() # Spasi
+
+    else:
+        # Judul untuk dokumen lain (Prota, Promes, dll)
+        title = doc.add_paragraph()
+        title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        title_run = title.add_run(f"{doc_type.upper()}\n{school_data['nama_madrasah']}")
+        title_run.bold = True
+        title_run.font.size = Pt(14)
+        doc.add_paragraph()
+
+    # 2. ISI KONTEN (Parsing sederhana untuk Markdown ke DOCX)
+    lines = content.split('\n')
+    current_table = None
+    table_rows = []
+    is_table = False
 
     for line in lines:
-        line_stripped = line.strip()
-        if not line_stripped:
-            doc.add_paragraph() # Spasi kosong
+        line = line.strip()
+        if not line:
+            if is_table and table_rows:
+                # Finalisasi tabel jika ada baris kosong
+                add_table_to_doc(doc, table_rows)
+                table_rows = []
+                is_table = False
+            doc.add_paragraph()
             continue
 
-        # Handle Headings
-        if line_stripped.startswith('# '):
-            p = doc.add_heading(line_stripped[2:], level=1)
-            for run in p.runs: run.font.name = 'Times New Roman'
-        elif line_stripped.startswith('## '):
-            p = doc.add_heading(line_stripped[3:], level=2)
-            for run in p.runs: run.font.name = 'Times New Roman'
-        elif line_stripped.startswith('### '):
-            p = doc.add_heading(line_stripped[4:], level=3)
-            for run in p.runs: run.font.name = 'Times New Roman'
-        # Handle Lists
-        elif line_stripped.startswith('- ') or line_stripped.startswith('* '):
-            p = doc.add_paragraph(line_stripped[2:], style='List Bullet')
-            for run in p.runs: run.font.name = 'Times New Roman'
-        elif line_stripped[0].isdigit() and line_stripped[1] == '.':
-            p = doc.add_paragraph(line_stripped, style='List Number')
-            for run in p.runs: run.font.name = 'Times New Roman'
-        # Handle Teks Biasa
+        # Deteksi Tabel Sederhana (Format Markdown: | Col | Col |)
+        if line.startswith('|') and line.endswith('|'):
+            is_table = True
+            cells = [c.strip() for c in line.split('|')[1:-1]]
+            table_rows.append(cells)
         else:
-            p = doc.add_paragraph(line_stripped)
-            for run in p.runs: run.font.name = 'Times New Roman'
+            if is_table and table_rows:
+                add_table_to_doc(doc, table_rows)
+                table_rows = []
+                is_table = False
 
-    # 4. Bagian Tanda Tangan (Layout Tabel Transparan)
-    doc.add_paragraph('\n' * 3) # Spasi besar sebelum ttd
+            # Deteksi Heading
+            if line.startswith('# '):
+                p = doc.add_paragraph()
+                run = p.add_run(line[2:])
+                run.bold = True
+                run.font.size = Pt(14)
+            elif line.startswith('## '):
+                p = doc.add_paragraph()
+                run = p.add_run(line[3:])
+                run.bold = True
+                run.font.size = Pt(12)
+            elif line.startswith('- ') or line.startswith('* '):
+                p = doc.add_paragraph(style='List Bullet')
+                p.add_run(line[2:])
+            else:
+                p = doc.add_paragraph(line)
 
-    table = doc.add_table(rows=1, cols=2)
-    table.autofit = False
-    table.style = None # Hilangkan border tabel
+    # Jika tabel berakhir di akhir dokumen
+    if is_table and table_rows:
+        add_table_to_doc(doc, table_rows)
 
-    # Kolom Kiri: Guru
-    cell_guru = table.cell(0, 0)
-    cell_guru.width = Inches(3.5)
-    p_guru = cell_guru.paragraphs[0]
-    p_guru.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    # 3. TANDA TANGAN (Khusus RPP/Modul Ajar)
+    if doc_type in ["RPP", "Modul Ajar"]:
+        doc.add_paragraph("\n\n")
 
-    run_guru = p_guru.add_run(f"Guru Mata Pelajaran,\n\n\n\n\n")
-    run_guru.font.bold = True
-    run_name_guru = p_guru.add_run(f"({teacher_name})\nNIP. ...........................")
-    run_name_guru.font.bold = True
+        # Layout 2 Kolom untuk Tanda Tangan
+        # Karena python-docx sulit membuat kolom side-by-side tanpa section break kompleks,
+        # kita gunakan tabel transparan 2 kolom untuk positioning.
+        sig_table = doc.add_table(rows=1, cols=2)
+        sig_table.autofit = False
+        sig_table.allow_autofit = False
 
-    # Kolom Kanan: Kepala Madrasah
-    cell_head = table.cell(0, 1)
-    cell_head.width = Inches(3.5)
-    p_head = cell_head.paragraphs[0]
-    p_head.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        # Kolom Kiri: Guru
+        cell_guru = sig_table.cell(0, 0)
+        cell_guru.width = Inches(3.0)
+        p_guru = cell_guru.paragraphs[0]
+        p_guru.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_guru.add_run(f"Mengetahui,\nKepala Madrasah\n\n\n\n\n")
+        p_guru.add_run(f"( {school_data['kepala_madrasah']} )\nNIP. {school_data['nip_kepala']}")
 
-    run_head = p_head.add_run(f"Kepala Madrasah,\n\n\n\n\n")
-    run_head.font.bold = True
-    run_name_head = p_head.add_run(f"({head_name})\nNIP. ...........................")
-    run_name_head.font.bold = True
+        # Kolom Kanan: Guru Mapel
+        cell_guru_mapel = sig_table.cell(0, 1)
+        cell_guru_mapel.width = Inches(3.0)
+        p_guru_mapel = cell_guru_mapel.paragraphs[0]
+        p_guru_mapel.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_guru_mapel.add_run(f"{school_data['kota']}, {school_data['tanggal_buat']}\nGuru Mata Pelajaran\n\n\n\n\n")
+        p_guru_mapel.add_run(f"( {school_data['nama_guru']} )\nNIP. {school_data['nip_guru']}")
 
-    # Simpan ke Buffer Memory
-    buffer = io.BytesIO()
+    # Simpan ke BytesIO
+    buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
     return buffer
 
-# --- FUNGSI: AI GENERATION (NVIDIA NIM) ---
-def generate_kbc_content(doc_type, subject, grade, topic, teacher, head, duration, goals):
-    system_instruction = """
-    Anda adalah asisten ahli pendidikan Indonesia yang beroperasi di bawah 'Kurikulum Berbasis Cinta (KBC) 2026'.
-    Filosofi Utama:
-    1. Humanis & Empatik: Setiap interaksi belajar harus membangun kasih sayang.
-    2. Psikologis Aman: Siswa harus merasa dihargai sebelum dinilai.
-    3. Kontekstual & Relevan: Materi dikaitkan dengan kehidupan nyata dan nilai kebaikan.
+def add_table_to_doc(doc, rows):
+    """Helper untuk menambahkan tabel ke dokumen"""
+    if not rows: return
+    table = doc.add_table(rows=len(rows), cols=len(rows[0]))
+    table.style = 'Table Grid'
 
-    TUGAS:
-    Buat dokumen administratif ({doc_type}) yang sangat terstruktur, formal, namun hangat.
-    Format output WAJIB menggunakan Markdown standar (# untuk judul, ## untuk subjudul, - untuk list).
-    Jangan sertakan kata pembuka seperti 'Tentu, ini dokumennya'. Langsung berikan isi dokumen.
-    Pastikan bagian 'Langkah Pembelajaran' (jika RPP) menyertakan ice-breaking berbasis cinta dan refleksi perasaan.
-    """
-
-    user_prompt = f"""
-    Buatkan {doc_type} dengan detail berikut:
-    - Mata Pelajaran: {subject}
-    - Kelas/Fase: {grade}
-    - Topik: {topic}
-    - Guru Pengampu: {teacher}
-    - Kepala Madrasah: {head}
-    - Waktu: {duration}
-    - Fokus Tujuan: {goals}
-
-    Standar Format 2026:
-    - Gunakan bahasa Indonesia baku yang elegan.
-    - Untuk RPP: Sertakan Pendahuluan (Apersepsi Emosional), Inti (Eksplorasi Kolaboratif), Penutup (Refleksi Hati).
-    - Untuk KKTP: Gunakan deskripsi kualitatif yang memotivasi, bukan hanya angka.
-    - Pastikan struktur rapi seperti dokumen resmi dinas.
-    """
-
-    try:
-        # Panggilan ke NVIDIA NIM
-        response = client.chat.completions.create(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_instruction},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=4096,
-            top_p=0.9,
-            frequency_penalty=0.1
-        )
-
-        return response.choices[0].message.content
-    except Exception as e:
-        error_msg = str(e)
-        if "401" in error_msg:
-            return "ERROR: API Key tidak valid atau kedaluwarsa. Cek file .env."
-        elif "404" in error_msg:
-            return f"ERROR: Model '{model_name}' tidak ditemukan di endpoint ini. Periksa nama model atau URL base."
-        else:
-            return f"ERROR KONEKSI NVIDIA NIM: {error_msg}"
+    for i, row_data in enumerate(rows):
+        row = table.rows[i]
+        for j, cell_text in enumerate(row_data):
+            cell = row.cells[j]
+            cell.text = cell_text
+            # Bold header row
+            if i == 0:
+                for paragraph in cell.paragraphs:
+                    for run in paragraph.runs:
+                        run.bold = True
 
 # --- UI STREAMLIT ---
-st.title("🚀 Generator Administrasi KBC 2026 (NVIDIA NIM)")
-st.markdown(f"**Model:** `{model_name}` | **Engine:** NVIDIA Builder | **Dev:** Lagos AI 9.1")
+
+st.title("📚 Generator Dokumen Pendidikan Madrasah AI")
+st.markdown(f"**Model:** `{MODEL_NAME}` via **NVIDIA Builder** | **Dev:** Lagos AI 9.1 (rian dev)")
 
 with st.sidebar:
-    st.header("📝 Input Data Dokumen")
+    st.header("🏫 Data Madrasah")
+    nama_madrasah = st.text_input("Nama Madrasah", "MI/MTs/MA Al-Hikmah")
+    jenis = st.selectbox("Jenjang", ["MI", "MTs", "MA"])
+    kabupaten = st.text_input("Kabupaten/Kota", "Contoh: Cirebon")
+    alamat = st.text_area("Alamat Lengkap", "Jl. Pendidikan No. 1")
+    telp = st.text_input("Nomor Telepon", "0231-1234567")
 
+    st.subheader("👤 Data Guru & Kepala")
+    kepala_madrasah = st.text_input("Nama Kepala Madrasah", "Drs. H. Ahmad Fulan, M.Pd")
+    nip_kepala = st.text_input("NIP Kepala", "19700101 199001 1 001")
+    nama_guru = st.text_input("Nama Guru Penyusun", "Fulan bin Fulan, S.Pd")
+    nip_guru = st.text_input("NIP Guru", "19900101 202001 1 001")
+    kota = st.text_input("Kota Tanda Tangan", "Cirebon")
+    tanggal_buat = st.date_input("Tanggal Pembuatan")
+
+    st.subheader("📝 Detail Dokumen")
     doc_type = st.selectbox(
-        "Pilih Jenis Dokumen",
-        ["RPP (Modul Ajar)", "ATP (Alur Tujuan Pembelajaran)", "CP (Capaian Pembelajaran)", 
-         "KKTP (Kriteria Ketuntasan)", "PROTA (Program Tahunan)", "PROMES (Program Semester)"]
+        "Jenis Dokumen",
+        ["RPP", "Modul Ajar", "ATP", "CP", "KKTP", "Prota", "Promes"]
     )
+    mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam")
+    kelas = st.text_input("Kelas/Semester", "VII (Tujuh) / Ganjil")
+    materi = st.text_area("Topik/Materi Spesifik", "Contoh: Akhlak Terpuji, Shalat Berjamaah")
 
-    st.divider()
+    generate_btn = st.button("🚀 Buat Dokumen", type="primary")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        subject = st.text_input("Mata Pelajaran", "Akidah Akhlak")
-        grade = st.text_input("Kelas / Fase", "Kelas 7 (Fase D)")
-    with col2:
-        topic = st.text_input("Topik Materi", "Beriman kepada Kitab-kitab Allah")
+# --- LOGIKA UTAMA ---
 
-    st.divider()
-
-    teacher_name = st.text_input("Nama Guru Lengkap", "Ahmad Fauzi, S.Pd.I")
-    head_name = st.text_input("Nama Kepala Madrasah", "Dr. H. Abdullah, M.Ag")
-    duration = st.text_input("Alokasi Waktu / Semester", "2 JP x Pertemuan / Semester Ganjil 2026")
-
-    goals = st.text_area(
-        "Tujuan Pembelajaran / Fokus KBC", 
-        placeholder="Contoh: Siswa mampu menjelaskan keyakinan terhadap kitab suci dengan penuh rasa cinta dan tanggung jawab moral."
-    )
-
-    btn_generate = st.button("✨ Generate dengan AI", type="primary", use_container_width=True)
-
-# Logika Utama
-if btn_generate:
-    if not all([subject, grade, topic, teacher_name, head_name]):
-        st.warning("⚠️ Mohon lengkapi semua data di sidebar.")
+if generate_btn:
+    if not nama_madrasah or not materi:
+        st.warning("Mohon lengkapi Nama Madrasah dan Topik Materi.")
     else:
-        with st.spinner('🤖 NVIDIA NIM sedang menyusun kurikulum berbasis cinta...'):
-            # 1. Generate Teks
-            ai_content = generate_kbc_content(
-                doc_type, subject, grade, topic, teacher_name, head_name, duration, goals
-            )
+        school_data = {
+            "nama_madrasah": nama_madrasah,
+            "jenis": jenis,
+            "kabupaten": kabupaten,
+            "alamat": alamat,
+            "telp": telp,
+            "kepala_madrasah": kepala_madrasah,
+            "nip_kepala": nip_kepala,
+            "nama_guru": nama_guru,
+            "nip_guru": nip_guru,
+            "kota": kota,
+            "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
+            "mapel": mapel,
+            "kelas": kelas
+        }
 
-            if ai_content.startswith("ERROR"):
-                st.error(ai_content)
-            else:
-                st.success("✅ Dokumen berhasil disusun!")
+        with st.spinner(f"Sedang mengakses {MODEL_NAME} untuk menyusun {doc_type}..."):
+            # System Prompt yang Sangat Spesifik
+            system_prompt = f"""
+            Anda adalah asisten ahli penyusun kurikulum pendidikan Indonesia (Kurikulum Merdeka) untuk tingkat Madrasah.
+            Tugas Anda adalah membuat dokumen {doc_type} yang sangat lengkap, terstruktur, dan siap pakai.
 
-                tab_preview, tab_download = st.tabs(["👁️ Preview Markdown", "📥 Download Word (.docx)"])
+            PENTING:
+            1. Gunakan format Markdown yang rapi.
+            2. Untuk tabel, WAJIB menggunakan format Markdown standar (| Header | Header |) agar bisa dikonversi ke Word.
+            3. Isi konten harus mendalam, pedagogis, dan sesuai dengan nilai-nilai Islam jika relevan.
+            4. Jangan sertakan kata pengantar seperti "Berikut adalah dokumen...", langsung mulai dari Judul Dokumen (Level 2 Heading).
+            5. Untuk RPP/Modul Ajar, pastikan mencakup: Tujuan Pembelajaran, Langkah Kegiatan (Pendahuluan, Inti, Penutup), Asesmen, dan Pengayaan/Remedial.
+            6. Untuk ATP/Prota/Promes, buat dalam format tabel rincian minggu/semester.
 
-                with tab_preview:
-                    st.markdown(ai_content)
+            Data Konteks:
+            - Mapel: {mapel}
+            - Kelas: {kelas}
+            - Materi: {materi}
+            """
 
-                with tab_download:
-                    st.info("File Word yang dihasilkan sudah diformat sesuai standar dinas (Times New Roman, Layout Tanda Tangan Otomatis).")
+            user_prompt = f"Buatkan {doc_type} lengkap untuk materi '{materi}' kelas {kelas} mata pelajaran {mapel}."
 
-                    # 2. Buat File Word
-                    doc_file = create_word_doc(
-                        title=f"{doc_type} {subject} {grade}",
-                        content_markdown=ai_content,
-                        teacher_name=teacher_name,
-                        head_name=head_name,
-                        doc_type=doc_type
-                    )
+            ai_content = get_ai_response(user_prompt, system_prompt)
 
-                    filename_safe = f"{doc_type.replace(' ', '_')}_{subject.replace(' ', '_')}_{grade}.docx"
+            if ai_content:
+                st.success("Dokumen berhasil dibuat oleh AI!")
 
-                    st.download_button(
-                        label="⬇️ Unduh File Word (.docx)",
-                        data=doc_file,
-                        file_name=filename_safe,
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                        use_container_width=True
-                    )
+                # Tampilkan Preview
+                st.subheader("Preview Konten")
+                st.markdown(ai_content)
 
+                # Generate Word File
+                doc_buffer = create_word_doc(ai_content, doc_type, school_data)
+
+                # Download Button
+                filename = f"{doc_type}_{mapel}_{kelas}_{nama_guru.replace(' ', '_')}.docx"
+                st.download_button(
+                    label="📥 Download File Word (.docx) Siap Cetak",
+                    data=doc_buffer,
+                    file_name=filename,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                )
+
+                st.info("💡 Tips: File Word yang diunduh sudah memiliki Kop Surat, Tanda Tangan, dan Format Tabel yang rapi. Anda hanya perlu menyesuaikan sedikit jika ada data spesifik yang berubah.")
+
+# Footer
 st.markdown("---")
-st.caption("Dikembangkan oleh **Lagos AI 9.1 (rian dev)** | Powered by **NVIDIA NIM** & **Streamlit**")
+st.caption("Dikembangkan dengan Lagos AI 9.1 (rian dev) menggunakan NVIDIA NIM & Qwen3.5-397B-A17B")
