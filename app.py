@@ -240,7 +240,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             set_font_safe(r_title_1, size=14, bold=True)
             r_title_1.underline = True
 
-            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']}")
+            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']} - {school_data['nama_guru")
             set_font_safe(r_title_2, size=14, bold=True)
             r_title_2.underline = True
 
@@ -454,8 +454,6 @@ with col_main:
                 Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
                 Jangan ada kode blok (```). Langsung isi dokumen.
                 Jika CP: Fokus pada elemen dan kata kunci operasional.
-                Penyusun:ganti sesuaikan dengan input nama guru.
-                satuan pendidikan sesuaikan dengan input nama madrasah.
                 """
 
                 user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
