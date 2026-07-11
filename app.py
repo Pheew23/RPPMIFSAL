@@ -284,7 +284,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
 # --- UI STREAMLIT ---
 
-st.title("❤️ Generator Dokumen KBC 2026 (Fix)")
+st.title("❤️ MI MIFTAHUSSALAM GENERATED Modul Ajar")
 st.markdown("**Bug `AttributeError` sudah diperbaiki.** Menggunakan Qwen 397B dengan timeout 300s.")
 
 with st.sidebar:
