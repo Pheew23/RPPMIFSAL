@@ -10,7 +10,7 @@ import time
 
 # --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="Generator KBC 2026 (Fixed)",
+    page_title="Generator Modul Ajar (revisi 4)",
     page_icon="❤️",
     layout="wide"
 )
@@ -36,7 +36,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         ],
         "temperature": 0.7,
         "top_p": 0.9,
-        "max_tokens": 4096,
+        "max_tokens": 6096,
         "stream": False
     }
 
@@ -45,7 +45,7 @@ def get_ai_response_kbc(prompt, system_instruction):
 
     while attempt < max_retries:
         try:
-            with st.status(f"❤️ AI (Qwen 397B) Sedang Berpikir... (Timeout 300s)", expanded=True) as status:
+            with st.status(f"❤️ AI (Lagos AI 9.1) Sedang Berpikir... (Timeout 300s)", expanded=True) as status:
                 # Timeout 300 detik sesuai request
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
 
@@ -284,23 +284,23 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
 # --- UI STREAMLIT ---
 
-st.title("❤️ Generator Dokumen KBC 2026 (Fixed Bug)")
+st.title("❤️ Generator Dokumen KBC 2026 (Fix)")
 st.markdown("**Bug `AttributeError` sudah diperbaiki.** Menggunakan Qwen 397B dengan timeout 300s.")
 
 with st.sidebar:
     st.header("🏫 Data Madrasah")
     nama_madrasah = st.text_input("Nama Madrasah", "MI/MTs/MA Al-Hikmah")
     jenis = st.selectbox("Jenjang", ["MI", "MTs", "MA"])
-    kabupaten = st.text_input("Kabupaten/Kota", "Cirebon")
+    kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
     alamat = st.text_area("Alamat", "Jl. Pendidikan No. 1")
     telp = st.text_input("Telp", "0231-1234567")
 
     st.subheader("👤 Data Guru")
-    kepala_madrasah = st.text_input("Kepala Madrasah", "Drs. H. Ahmad Fulan, M.Pd")
-    nip_kepala = st.text_input("NIP Kepala", "19700101 199001 1 001")
-    nama_guru = st.text_input("Nama Guru", "Fulan bin Fulan, S.Pd")
-    nip_guru = st.text_input("NIP Guru", "19900101 202001 1 001")
-    kota = st.text_input("Kota", "Cirebon")
+    kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
+    nip_kepala = st.text_input("NIP Kepala", "-")
+    nama_guru = st.text_input("Nama Guru", "..")
+    nip_guru = st.text_input("NIP Guru", "-")
+    kota = st.text_input("Kota", "Bogor")
     tanggal_buat = st.date_input("Tanggal")
 
     st.subheader("📝 Konten Pembelajaran")
