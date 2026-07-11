@@ -41,7 +41,7 @@ def get_ai_response_kbc(prompt, system_instruction):
     }
 
     max_retries = 1
-    attempt = 1
+    attempt = 0
 
     while attempt < max_retries:
         try:
