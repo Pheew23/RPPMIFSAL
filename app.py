@@ -290,7 +290,7 @@ st.markdown("**Bug `AttributeError` sudah diperbaiki.** Menggunakan Qwen 397B de
 with st.sidebar:
     st.header("🏫 Data Madrasah")
     nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
-    jenis = st.selectbox("Jenjang", ["MI", "MTs", "MA"])
+    jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
     kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
     alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46,Pasirmulya, Bogor Barat")
     telp = st.text_input("Telp", "")
@@ -329,7 +329,7 @@ if btn:
         Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
         Jangan ada kode blok (```). Langsung isi dokumen.
         Jika CP: Fokus pada elemen dan kata kunci operasional.
-        penyusun:ganti sesuai nama_guru.
+        penyusun:ganti sesuai nama guru.
         """
 
         user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
