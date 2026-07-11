@@ -240,7 +240,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             set_font_safe(r_title_1, size=14, bold=True)
             r_title_1.underline = True
 
-            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']})
+            r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']} - {school_data['Penyusun']}")
             set_font_safe(r_title_2, size=14, bold=True)
             r_title_2.underline = True
 
