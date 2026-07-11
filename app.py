@@ -302,11 +302,14 @@ with st.sidebar:
     nip_guru = st.text_input("NIP Guru", "-")
     kota = st.text_input("Kota", "Bogor")
     tanggal_buat = st.date_input("Tanggal")
+    
+    
 
     st.subheader("📝 Konten Pembelajaran")
     doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
     mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
     kelas = st.text_input("Kelas / Fase", "VI / Fase C")
+    tahun_ajaran = st.text_input("tahun ajaran", "2026/2027")
     materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=100)
 
 btn = st.button("✨ Generate Dokumen KBC 2026", type="primary", use_container_width=True)
@@ -320,7 +323,7 @@ if btn:
             "alamat": alamat, "telp": telp, "kepala_madrasah": kepala_madrasah,
             "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
-            "mapel": mapel, "kelas": kelas
+            "mapel": mapel, "kelas": kelas, "tahun_ajaran": tahun_ajaran
         }
 
         sys_prompt = """
