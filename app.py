@@ -135,7 +135,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # Baris 1: MODUL AJAR DEEP LEARNING (KBC)
-        r_t1 = p_title.add_run(f"MODUL AJAR DEEP LEARNING (KBC)\n")
+        r_t1 = p_title.add_run(f"{school_data['jenis_document'].upper()}\n")
         set_font_safe(r_t1, size=14, bold=True)
         
         # Baris 2: MATA PELAJARAN : [MAPEL]
@@ -158,7 +158,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
             ("Nama Penyusun", f": {school_data['nama_guru']}"),
             ("Mata Pelajaran", f": {school_data['mapel']}"),
-            ("Kelas / Fase / Semester", f": {school_data['kelas']} / D / Ganjil"),
+            ("Kelas / Fase / Semester", f": {school_data['kelas']}"),
             ("Alasi Waktu / JP", f": 8 JP (4 kali pertemuan @ 2 JP)"),
             ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
         ]
