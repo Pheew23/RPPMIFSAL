@@ -90,7 +90,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
     }
     try:
-        with st.status(f"❤️ Lagos AI Sedang Merakit Berkas...", expanded=True) as status:
+        with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
                 status.update(label="✅ Perumusan Konten Selesai!", state="complete", expanded=False)
@@ -436,7 +436,7 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Berkas perangkat mengajar Anda telah selesai dirakit otomatis dengan format standar dinas asli.")
+                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Tugas Saya Sudah Selesai, ada yang bisa di bantu lg?.")
 
 # --- PROSES EKSEKUSI TAB 3: FORMAT SOAL CUSTOM REVISI ---
 if btn_soal:
