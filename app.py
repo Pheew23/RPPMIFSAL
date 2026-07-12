@@ -17,39 +17,57 @@ def load_lottieurl(url: str):
 
 # --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="MI MIFTAHUSSALAM - KBC 2026",
+    page_title="MI MIFTAHUSSALAM - KBC Premium",
     page_icon="❤️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- INJEKSI CSS KUSTOM ---
+# --- PREMIUM ADAPTIVE GLASSMORPHISM CSS ---
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-    html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-    .main-card {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 20px;
-        padding: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
-        backdrop-filter: blur(10px);
-        margin-bottom: 20px;
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    
+    html, body, [class*="css"] { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
     }
+    
+    .premium-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 16px;
+        padding: 28px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        margin-bottom: 25px;
+    }
+    
     div.stButton > button:first-child {
-        background: linear-gradient(45deg, #FF4B4B, #FF8E8E);
+        background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%);
         color: white;
         border: none;
-        padding: 15px 30px;
-        border-radius: 12px;
+        padding: 14px 28px;
+        border-radius: 10px;
         font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 18px rgba(255, 75, 75, 0.25);
     }
+    
     div.stButton > button:first-child:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(255, 75, 75, 0.5);
+        box-shadow: 0 6px 22px rgba(255, 75, 75, 0.45);
+    }
+
+    .p-badge {
+        background: rgba(255, 75, 75, 0.1);
+        color: #FF4B4B;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -59,47 +77,29 @@ NVIDIA_API_KEY = "nvapi-0hGDKTuHAqhltjmBi9STa2BKpG8F-10wj_wDe-jCCE8XY4VUAsXsV3bh
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
-# --- FUNGSI HELPER ---
-
+# --- LOGIKA CORE & HELPER ---
 def get_ai_response_kbc(prompt, system_instruction):
-    headers = {
-        "Authorization": f"Bearer {NVIDIA_API_KEY}",
-        "Content-Type": "application/json"
-    }
+    headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
     payload = {
         "model": MODEL_NAME,
         "messages": [
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7,
-        "top_p": 0.9,
-        "max_tokens": 6096,
-        "stream": False
+        "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
     }
-
-    max_retries = 1
-    attempt = 0
-    while attempt < max_retries:
-        try:
-            with st.status(f"❤️ AI Sedang Merenung... Membuat modul dengan penuh cinta...", expanded=True) as status:
-                response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
-                if response.status_code == 200:
-                    result = response.json()
-                    content = result['choices'][0]['message']['content']
-                    status.update(label="✅ Selesai Dibuat!", state="complete", expanded=False)
-                    return content
-                else:
-                    st.error(f"API Error: {response.status_code}")
-                    status.update(label="❌ Gagal", state="error")
-                    return None
-        except requests.exceptions.ReadTimeout:
-            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti.")
-            return None
-        except Exception as e:
-            st.error(f"Koneksi Error: {str(e)}")
-            return None
-    return None
+    try:
+        with st.status(f"❤️ Lagos AI Sedang Merakit Lembar Asesmen/Soal...", expanded=True) as status:
+            response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
+            if response.status_code == 200:
+                status.update(label="✅ Perumusan Soal Selesai!", state="complete", expanded=False)
+                return response.json()['choices'][0]['message']['content']
+            else:
+                status.update(label="❌ Gagal Terhubung ke AI", state="error")
+                return None
+    except Exception as e:
+        st.error(f"Koneksi Bermasalah: {str(e)}")
+        return None
 
 def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
     if run is None: return
@@ -113,13 +113,11 @@ def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
 
 def clean_markdown_symbols(text):
     if not text: return ""
-    text = re.sub(r'\*\frac{.*?}{.*?}\*\*', r'', text) # clean up messy fractions if any
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     text = re.sub(r'\*(.*?)\*', r'\1', text)
     text = re.sub(r'^#+\s*', '', text)
     text = re.sub(r'^[-*]\s+', '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    return text
+    return text.strip()
 
 def create_word_doc_kbc(content, doc_type, school_data):
     try:
@@ -128,69 +126,50 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.font.name = 'Times New Roman'
         style.font.size = Pt(12)
         style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Times New Roman')
-        style.paragraph_format.space_after = Pt(4)
-
-        # 1. JUDUL DOKUMEN (DINAMIS MENGIKUTI INPUT UI)
+        
+        # 1. JUDUL DOKUMEN / KOP SOAL DINAMIS
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        
-        r_t1 = p_title.add_run(f"{doc_type.upper()} KURIKULUM BERBASIS CINTA (KBC)\n")
-        set_font_safe(r_t1, size=14, bold=True)
-        
-        r_t2 = p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n")
-        set_font_safe(r_t2, size=14, bold=True)
-        
-        r_t3 = p_title.add_run(f"{school_data['materi'].upper()}\n")
-        set_font_safe(r_t3, size=14, bold=True)
+        set_font_safe(p_title.add_run(f"{doc_type.upper()} DEEP LEARNING (KBC)\n"), size=14, bold=True)
+        set_font_safe(p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n"), size=14, bold=True)
+        set_font_safe(p_title.add_run(f"MATERI: {school_data['materi'].upper()}\n"), size=14, bold=True)
         
         doc.add_paragraph()
-
-        # 2. SEKSI A. IDENTITAS MODUL
-        p_id = doc.add_paragraph()
-        r_id = p_id.add_run("A. IDENTITAS MODUL")
-        set_font_safe(r_id, size=12, bold=True)
+        
+        # 2. LEMBAR IDENTITAS PESERTA / DOKUMEN
+        set_font_safe(doc.add_paragraph().add_run("LEMBAR ASESMEN / DOKUMEN"), size=12, bold=True)
 
         items = [
             ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
             ("Nama Penyusun", f": {school_data['nama_guru']}"),
             ("Mata Pelajaran", f": {school_data['mapel']}"),
-            ("Kelas / Fase / Semester", f": {school_data['kelas']} / Ganjil"),
-            ("Alokasi Waktu", f": 8 JP (4 kali pertemuan @ 2 JP)"),
+            ("Kelas / Fase Tingkat", f": {school_data['kelas']}"),
             ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
         ]
 
+        if "tingkat_kesulitan" in school_data:  # Ciri khas untuk Lembar Ujian/Soal
+            items.append(("Tingkat Kesulitan", f": {school_data['tingkat_kesulitan']}"))
+
         for label, value in items:
-            p_item = doc.add_paragraph()
-            p_item.paragraph_format.left_indent = Inches(0.4)
-            p_item.paragraph_format.space_after = Pt(2)
-            
-            r_lbl = p_item.add_run(f"{label:<25}") 
-            set_font_safe(r_lbl, size=12)
-            
-            r_val = p_item.add_run(value)
-            set_font_safe(r_val, size=12)
+            p = doc.add_paragraph()
+            p.paragraph_format.left_indent = Inches(0.4)
+            set_font_safe(p.add_run(f"{label:<25}"), size=12)
+            set_font_safe(p.add_run(value), size=12)
 
         doc.add_paragraph()
 
-        # --- 3. PARSE KONTEN AI ---
+        # Parse isi dokumen AI ke format teks Word resmi
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
-        i = 0
-        while i < len(lines):
-            line = lines[i]
+        for line in lines:
             stripped = line.strip()
             if stripped.startswith('|') and not re.match(r'^\|[\s\-:]+\|$', stripped):
                 in_table_mode = True
             if in_table_mode:
-                if re.match(r'^\|[\s\-:]+\|$', stripped):
-                    i += 1
-                    continue
+                if re.match(r'^\|[\s\-:]+\|$', stripped): continue
                 if stripped.startswith('|') and stripped.endswith('|'):
-                    raw_cells = stripped.split('|')[1:-1]
-                    cells = [clean_markdown_symbols(c.strip()) for c in raw_cells]
-                    table_buffer.append(cells)
-                    i += 1
+                    table_buffer.append([clean_markdown_symbols(c.strip()) for c in stripped.split('|')[1:-1]])
                     continue
                 else:
                     if table_buffer:
@@ -202,180 +181,213 @@ def create_word_doc_kbc(content, doc_type, school_data):
                                 row = table.rows[r_idx]
                                 for c_idx, cell_text in enumerate(row_data):
                                     if c_idx < len(row.cells):
-                                        cell = row.cells[c_idx]
-                                        cell.text = cell_text
-                                        for paragraph in cell.paragraphs:
-                                            for run in paragraph.runs:
-                                                set_font_safe(run, size=11, bold=(r_idx==0))
+                                        row.cells[c_idx].text = cell_text
+                                        for p in row.cells[c_idx].paragraphs:
+                                            for run in p.runs: set_font_safe(run, size=11, bold=(r_idx==0))
                         except: pass
                         table_buffer = []
                         in_table_mode = False
             if not in_table_mode:
                 if not stripped:
                     doc.add_paragraph()
-                    i += 1
                     continue
                 p = doc.add_paragraph()
                 is_bold, font_size = False, 12
-                final_text = stripped
                 if stripped.startswith('# '):
-                    final_text = clean_markdown_symbols(stripped[2:])
-                    is_bold, font_size = True, 14
+                    stripped, is_bold, font_size = stripped[2:], True, 14
                 elif stripped.startswith('## '):
-                    final_text = clean_markdown_symbols(stripped[3:])
-                    is_bold, font_size = True, 13
+                    stripped, is_bold, font_size = stripped[3:], True, 13
                 if stripped.startswith('- ') or stripped.startswith('* '):
                     p.style = 'List Bullet'
-                    final_text = clean_markdown_symbols(stripped[2:])
-                else:
-                    final_text = clean_markdown_symbols(stripped)
-                r = p.add_run(final_text)
-                set_font_safe(r, size=font_size, bold=is_bold)
-            i += 1
-        
-        # Tanda Tangan
-        if doc_type in ["RPP", "Modul Ajar"]:
-            doc.add_paragraph("\n")
-            sig_table = doc.add_table(rows=1, cols=2)
-            cell_kiri = sig_table.cell(0, 0)
-            p_kiri = cell_kiri.paragraphs[0]
-            p_kiri.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            r_kiri_1 = p_kiri.add_run(f"Mengetahui,\nKepala Madrasah\n\n\n\n\n")
-            set_font_safe(r_kiri_1, size=12)
-            r_kiri_2 = p_kiri.add_run(f"( {school_data['kepala_madrasah']} )\nNIP. {school_data['nip_kepala']}")
-            set_font_safe(r_kiri_2, size=12, bold=True)
-            cell_kanan = sig_table.cell(0, 1)
-            p_kanan = cell_kanan.paragraphs[0]
-            p_kanan.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            r_kanan_1 = p_kanan.add_run(f"{school_data['kota']}, {school_data['tanggal_buat']}\nGuru Mata Pelajaran\n\n\n\n\n")
-            set_font_safe(r_kanan_1, size=12)
-            r_kanan_2 = p_kanan.add_run(f"( {school_data['nama_guru']} )\nNIP. {school_data['nip_guru']}")
-            set_font_safe(r_kanan_2, size=12, bold=True)
+                    stripped = stripped[2:]
+                set_font_safe(p.add_run(clean_markdown_symbols(stripped)), size=font_size, bold=is_bold)
+
+        # Bagian Lembar Tanda Tangan Mandatori
+        doc.add_paragraph("\n")
+        sig_table = doc.add_table(rows=1, cols=2)
+        cell_kiri = sig_table.cell(0, 0)
+        p_kiri = cell_kiri.paragraphs[0]
+        p_kiri.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_kiri_1 = p_kiri.add_run(f"Mengetahui,\nKepala Madrasah\n\n\n\n\n")
+        set_font_safe(r_kiri_1, size=12)
+        r_kiri_2 = p_kiri.add_run(f"( {school_data['kepala_madrasah']} )\nNIP. {school_data['nip_kepala']}")
+        set_font_safe(r_kiri_2, size=12, bold=True)
+        cell_kanan = sig_table.cell(0, 1)
+        p_kanan = cell_kanan.paragraphs[0]
+        p_kanan.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        r_kanan_1 = p_kanan.add_run(f"{school_data['kota']}, {school_data['tanggal_buat']}\nGuru Mata Pelajaran\n\n\n\n\n")
+        set_font_safe(r_kanan_1, size=12)
+        r_kanan_2 = p_kanan.add_run(f"( {school_data['nama_guru']} )\nNIP. {school_data['nip_guru']}")
+        set_font_safe(r_kanan_2, size=12, bold=True)
 
         buffer = BytesIO()
         doc.save(buffer)
         buffer.seek(0)
         return buffer
     except Exception as e:
-        st.error(f"❌ Error Fatal Word: {str(e)}")
+        st.error(f"Error Pembuatan Dokumen Word: {e}")
         return None
 
-# --- NEW: POP-UP MODAL UNTUK UNDUH DOKUMEN ---
-@st.dialog("📥 Dokumen Siap Diunduh!")
+# --- DIALOG POP-UP DOKUMEN ---
+@st.dialog("📥 Berkas Anda Telah Siap!")
 def show_download_popup(buffer, filename, details):
-    st.success("🎉 Beres Ya Kerjaan Saya!.")
-    
-    # Animasi kecil di dalam pop-up
-    lottie_pop = load_lottieurl("https://lottie.host/80e98031-6453-48b4-bb50-bf654c6ee1ff/t3Kx56jU2W.json") # Animasi sukses/centang jika ada
-    
+    st.markdown('<div class="p-badge">Status: Sukses</div>', unsafe_allow_html=True)
+    st.write(f"### 🎉 Dokumen Berhasil Dibuat!")
     st.markdown(f"""
-    **Detail Berkas:**
-    - **Nama File:** `{filename}`
-    - **Jenis:** Microsoft Word (.docx)
-    - **Kurikulum:** KBC Deep Learning 2026
+    Berkas ujian/perangkat mengajar Anda telah selesai dirakit otomatis.
+    * **Nama Berkas:** `{filename}`
+    * **Pendekatan Teks:** Kurikulum Berbasis Cinta (KBC) 2026
     """)
-    st.info("Silakan klik untuk donwload.")
-    
-    # Tombol download ditaruh tepat di dalam pop-up tengah layar
+    st.divider()
     st.download_button(
-        label="📥 UNDUH SEKARANG (WORD)",
+        label="📥 UNDUH SEKARANG",
         data=buffer,
         file_name=filename,
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         use_container_width=True
     )
 
-# --- UI STREAMLIT INTERFACE ---
+# --- UI INTERFACE CORE ---
 from streamlit_lottie import st_lottie
-lottie_edu = load_lottieurl("https://lottie.host/e2d09c31-7290-482a-9957-c59800742f1f/o86M61f87s.json")
 lottie_heart = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_v9t630.json")
 
-head_col1, head_col2 = st.columns([0.8, 0.2])
-with head_col1:
-    st.title("❤️ MI MIFTAHUSSALAM Workspace")
-    st.subheader("Kurikulum Berbasis Cinta (KBC) 2026")
-
-with head_col2:
-    if lottie_heart:
-        st_lottie(lottie_heart, height=120, key="heart")
+c_title, c_logo = st.columns([0.85, 0.15])
+with c_title:
+    st.title("Workspace KBC 2026 ❤️")
+    st.caption("Aplikasi Administrasi Lembaga & Bank Soal Otomatis Tingkat Lanjut")
+with c_logo:
+    if lottie_heart: st_lottie(lottie_heart, height=80, key="main_heart")
 
 st.divider()
 
-with st.sidebar:
-    if lottie_edu:
-        st_lottie(lottie_edu, height=120)
-    st.header("⚙️ Konfigurasi")
-    with st.expander("🏫 Data Madrasah", expanded=False):
-        nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
-        jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
-        kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
-        alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46, Pasirmulya, Bogor Barat")
-        telp = st.text_input("Telp", "")
-    with st.expander("👤 Data Personel", expanded=False):
-        kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
+# PENAMBAHAN SISTEM TIGA TAB (TERMASUK BANK SOAL)
+tab_setup, tab_materi, tab_soal = st.tabs([
+    "🏛️ Langkah 1: Profil Lembaga", 
+    "📚 Langkah 2: Modul Pembelajaran", 
+    "📝 Langkah 3: Modul Bank Soal"
+])
+
+with tab_setup:
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.subheader("Informasi Instansi & Guru")
+    col1, col2 = st.columns(2)
+    with col1:
+        nama_madrasah = st.text_input("Nama Sekolah/Madrasah", "MI MIFTAHUSSALAM")
+        jenis = st.selectbox("Jenjang Satuan", ["MI/SD", "MTs/SMP", "MA/SMA"])
+        kabupaten = st.text_input("Kabupaten/Kota Domisili", "Kota Bogor")
+        alamat = st.text_area("Alamat Lengkap", "Jl. Rimba Mulya II No.46, Pasirmulya, Bogor Barat", height=68)
+    with col2:
+        nama_guru = st.text_input("Nama Lengkap Guru (Penyusun)", "Guru Pengajar")
+        kepala_madrasah = st.text_input("Nama Kepala Madrasah", "Drs. Andi Supriadi")
         nip_kepala = st.text_input("NIP Kepala", "-")
-        nama_guru = st.text_input("Nama Guru", "..")
-        nip_guru = st.text_input("NIP Guru", "-")
-        kota = st.text_input("Kota", "Bogor")
-        tanggal_buat = st.date_input("Tanggal")
-
-col_main, col_preview = st.columns([0.6, 0.4], gap="large")
-
-with col_main:
-    st.markdown('<div class="main-card">', unsafe_allow_html=True)
-    st.markdown("### 📝 Detail Pembelajaran")
-    doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        mapel = st.text_input("Mata Pelajaran", "Matematika")
-    with c2:
-        kelas = st.text_input("Kelas / Fase", "VII / D")
-    
-    tahun_ajaran = st.text_input("Tahun Ajaran", "2026/2027")
-    materi = st.text_area("Topik Utama / Materi", "Pecahan dan Desimal", height=120)
-    
-    btn = st.button("✨ JALANKAN GENERASI CERDAS", type="primary", use_container_width=True)
+        kota = st.text_input("Kota Pembuatan Dokumen", "Bogor")
     st.markdown('</div>', unsafe_allow_html=True)
 
-with col_preview:
-    st.markdown('<div class="main-card">', unsafe_allow_html=True)
-    st.markdown("### 🔍 Info Kurikulum KBC")
-    st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
-    st.markdown("""
-    - 💖 Cinta kepada Allah & Rasul
-    - 📚 Cinta kepada Ilmu
-    - 🧘 Cinta kepada Diri Sendiri
-    - 🤝 Cinta kepada Sesama
-    - 🌿 Cinta kepada Lingkungan
-    """)
+with tab_materi:
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.subheader("Kurikulum Perangkat Mengajar")
+    cx, cy = st.columns(2)
+    with cx:
+        doc_type_materi = st.selectbox("Pilih Output Dokumen Perangkat", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
+        mapel_materi = st.text_input("Nama Mata Pelajaran", "Akidah Akhlak", key="mp_materi")
+    with cy:
+        kelas_materi = st.text_input("Kelas / Fase Tingkat", "IV / Fase B", key="kls_materi")
+        tahun_ajaran_materi = st.text_input("Periode Tahun Ajaran", "2026/2027", key="ta_materi")
+    materi_pembelajaran = st.text_area("Topik Pokok Pembelajaran / Bab Bahasan", "Sifat Wajib Allah", height=100, key="mat_materi")
+    st.divider()
+    btn_materi = st.button("🚀 GENERASIKAN MODUL PERANGKAT", type="primary", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-if btn:
-    if not nama_madrasah or not materi:
-        st.warning("⚠️ Mohon isi data madrasah dan topik materi.")
+# --- NEW: INPUT TENTANG DOKUMEN PEMBUATAN SOAL TERPISAH ---
+with tab_soal:
+    st.markdown('<div class="premium-card">', unsafe_allow_html=True)
+    st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian")
+    
+    c_soal1, c_soal2 = st.columns(2)
+    with c_soal1:
+        doc_type_soal = st.selectbox("Jenis Asesmen Ulangan", ["Asesmen Tengah Semester (ATS)", "Sumatif Akhir Semester (SAS)", "Sumatif Akhir Tahun (SAT)"])
+        mapel_soal = st.text_input("Mata Pelajaran Ujian", "Akidah Akhlak", key="mp_soal")
+        kelas_soal = st.text_input("Jenjang / Kelas / Fase", "Kelas 4 SD / Fase B", key="kls_soal")
+    with c_soal2:
+        materi_soal = st.text_input("Materi Pokok Ujian", "Sifat Wajib Allah", key="mat_soal")
+        kesulitan_soal = st.selectbox("Tingkat Kesulitan", ["Mudah", "Sedang", "Sulit", "Campuran / HOTS"])
+        tahun_ajaran_soal = st.text_input("Tahun Ajaran Ujian", "2026/2027", key="ta_soal")
+        
+    st.markdown("##### 📊 Komposisi Distribusi Soal")
+    cg1, cg2, cg3 = st.columns(3)
+    with cg1:
+        jml_pg = st.number_input("Jumlah Pilihan Ganda (PG)", min_value=0, max_value=50, value=10)
+    with cg2:
+        jml_isian = st.number_input("Jumlah Soal Isian Singkat", min_value=0, max_value=30, value=5)
+    with cg3:
+        jml_uraian = st.number_input("Jumlah Soal Uraian / Essay", min_value=0, max_value=20, value=2)
+        
+    st.divider()
+    btn_soal = st.button("📝 GENERASIKAN LEMBAR BANK SOAL", type="primary", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with st.sidebar:
+    st.header("📋 Kontrol Administrasi")
+    st.markdown("Pilih tab di halaman tengah untuk menentukan tipe file output berkas Anda.")
+    tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
+
+# --- PROSES EKSEKUSI TAB 2: MODUL AJAR ---
+if btn_materi:
+    if not nama_madrasah or not materi_pembelajaran:
+        st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
     else:
         data = {
-            "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten,
-            "alamat": alamat, "telp": telp, "kepala_madrasah": kepala_madrasah,
-            "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
+            "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
+            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, 
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
-            "mapel": mapel, "kelas": kelas, "tahun_ajaran": tahun_ajaran, "materi": materi
+            "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
-
-        sys_prompt = """
-        Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. 
-        Fokus: Cinta kepada Allah dan Rasul-Nya, Cinta kepada Ilmu, Cinta Kepada Diri Sendiri, Cinta Kepada Sesama.
-        Format: Markdown. Mulai langsung ke isi materi inti setelah sub-judul 'B. KOMPONEN INTI' atau bagian isi, karena bab Identitas sudah dibuat secara sistem.
-        Jangan gunakan kode blok (```).
-        """
-
-        user_prompt = f"Buat isi {doc_type} untuk pelajaran {mapel} kelas {kelas} materi: {materi}. Sertakan tabel langkah pembelajaran."
-
+        sys_prompt = "Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
+        user_prompt = f"Buat dokumen {doc_type_materi} pelajaran {mapel_materi} kelas {kelas_materi} topik: {materi_pembelajaran}. Sertakan tabel langkah kegiatan."
+        
         content = get_ai_response_kbc(user_prompt, sys_prompt)
-
         if content:
-            buffer = create_word_doc_kbc(content, doc_type, data)
+            buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                fname = f"KBC2026_{doc_type}_{kelas}_{mapel}.docx"
-                # Memanggil fungsi pop-up modal secara langsung tanpa balon
-                show_download_popup(buffer, fname, data)
+                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", data)
+
+# --- PROSES EKSEKUSI TAB 3: ASESMEN/SOAL (FITUR BARU) ---
+if btn_soal:
+    if not nama_madrasah or not materi_soal:
+        st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
+    else:
+        data = {
+            "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
+            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, 
+            "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
+            "mapel": mapel_soal, "kelas": kelas_soal, "tahun_ajaran": tahun_ajaran_soal, 
+            "materi": materi_soal, "tingkat_kesulitan": kesulitan_soal
+        }
+        
+        sys_prompt = """
+        Anda adalah Ahli Evaluasi Akademik Kurikulum Berbasis Cinta (KBC) 2026.
+        Tugas Anda adalah memproduksi naskah lembar ujian/soal yang siap dikerjakan siswa.
+        Format Output Harus Terstruktur Menggunakan Penomoran Rapi:
+        - BAGIAN I: SOAL PILIHAN GANDA (berikan opsi A, B, C, D)
+        - BAGIAN II: SOAL ISIAN SINGKAT
+        - BAGIAN III: SOAL URAIAN / ESSAY
+        Jangan memunculkan jawaban di lembar ini. Buatkan Kunci Jawaban terpisah di paling bawah halaman dokumen.
+        Jangan gunakan kode blok markdown (```).
+        """
+        
+        user_prompt = f"""
+        Buatkan naskah soal ujian {doc_type_soal} untuk Mata Pelajaran {mapel_soal}, {kelas_soal}.
+        Materi Pokok Bahasan: {materi_soal}.
+        Tingkat Kesulitan Soal: {kesulitan_soal}.
+        Komposisi Soal Yang Harus Dibuat:
+        - {jml_pg} Soal Pilihan Ganda (PG)
+        - {jml_isian} Soal Isian Singkat
+        - {jml_uraian} Soal Uraian/Essay
+        Sertakan Kunci Jawaban lengkap di bagian paling akhir halaman!
+        """
+        
+        content = get_ai_response_kbc(user_prompt, sys_prompt)
+        if content:
+            buffer = create_word_doc_kbc(content, doc_type_soal, data)
+            if buffer:
+                show_download_popup(buffer, f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx", data)
