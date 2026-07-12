@@ -82,16 +82,16 @@ def get_ai_response_kbc(prompt, system_instruction):
     attempt = 0
     while attempt < max_retries:
         try:
-            with st.status(f"❤️ LAGOS AI Sedang Merenung... Tunggu 15-45s...", expanded=True) as status:
+            with st.status(f"❤️ AI Sedang Merenung... Membuat modul dengan penuh cinta...", expanded=True) as status:
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
                 if response.status_code == 200:
                     result = response.json()
                     content = result['choices'][0]['message']['content']
-                    status.update(label="✅ Kerjaan Saya Beres Ya!", state="complete", expanded=False)
+                    status.update(label="✅ Selesai Dibuat!", state="complete", expanded=False)
                     return content
                 else:
                     st.error(f"API Error: {response.status_code}")
-                    status.update(label="❌ HAHAHAHAHA Error, Coba Lagi!", state="error")
+                    status.update(label="❌ Gagal", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
             st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti.")
@@ -113,6 +113,7 @@ def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
 
 def clean_markdown_symbols(text):
     if not text: return ""
+    text = re.sub(r'\*\frac{.*?}{.*?}\*\*', r'', text) # clean up messy fractions if any
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     text = re.sub(r'\*(.*?)\*', r'\1', text)
     text = re.sub(r'^#+\s*', '', text)
@@ -120,7 +121,6 @@ def clean_markdown_symbols(text):
     text = re.sub(r'\s+', ' ', text).strip()
     return text
 
-# --- MODIFIKASI DISINI: SESUAI GAMBAR CONTOH ---
 def create_word_doc_kbc(content, doc_type, school_data):
     try:
         doc = Document()
@@ -130,55 +130,49 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Times New Roman')
         style.paragraph_format.space_after = Pt(4)
 
-        # 1. JUDUL DOKUMEN (SEPERTI DI GAMBAR)
+        # 1. JUDUL DOKUMEN (DINAMIS MENGIKUTI INPUT UI)
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
-        # Baris 1: MODUL AJAR DEEP LEARNING (KBC)
-        r_t1 = p_title.add_run(f"{doc_type.upper()} DEEP LEARNING (KBC)\n")
+        r_t1 = p_title.add_run(f"{doc_type.upper()} KURIKULUM BERBASIS CINTA (KBC)\n")
         set_font_safe(r_t1, size=14, bold=True)
         
-        # Baris 2: MATA PELAJARAN : [MAPEL]
         r_t2 = p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n")
         set_font_safe(r_t2, size=14, bold=True)
         
-        # Baris 3: [TOPIK/MATERI]
         r_t3 = p_title.add_run(f"{school_data['materi'].upper()}\n")
         set_font_safe(r_t3, size=14, bold=True)
         
-        doc.add_paragraph() # Jarak spasi kosong
+        doc.add_paragraph()
 
         # 2. SEKSI A. IDENTITAS MODUL
         p_id = doc.add_paragraph()
         r_id = p_id.add_run("A. IDENTITAS MODUL")
         set_font_safe(r_id, size=12, bold=True)
 
-        # Membuat format list titik-titik persis seperti pada gambar
         items = [
             ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
             ("Nama Penyusun", f": {school_data['nama_guru']}"),
             ("Mata Pelajaran", f": {school_data['mapel']}"),
-            ("Kelas / Fase / Semester", f": {school_data['kelas']}"),
-            ("Alasi Waktu / JP", f": 8 JP (4 kali pertemuan @ 2 JP)"),
+            ("Kelas / Fase / Semester", f": {school_data['kelas']} / Ganjil"),
+            ("Alokasi Waktu", f": 8 JP (4 kali pertemuan @ 2 JP)"),
             ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
         ]
 
         for label, value in items:
             p_item = doc.add_paragraph()
-            p_item.paragraph_format.left_indent = Inches(0.4) # Menjorok ke dalam sedikit
+            p_item.paragraph_format.left_indent = Inches(0.4)
             p_item.paragraph_format.space_after = Pt(2)
             
-            # Tambahkan Label kolom kiri
             r_lbl = p_item.add_run(f"{label:<25}") 
             set_font_safe(r_lbl, size=12)
             
-            # Tambahkan isi kolom kanan
             r_val = p_item.add_run(value)
             set_font_safe(r_val, size=12)
 
-        doc.add_paragraph() # Jarak sebelum masuk ke konten inti AI
+        doc.add_paragraph()
 
-        # --- 3. PARSE KONTEN AI (TETAP SAMA) ---
+        # --- 3. PARSE KONTEN AI ---
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
@@ -266,6 +260,31 @@ def create_word_doc_kbc(content, doc_type, school_data):
         st.error(f"❌ Error Fatal Word: {str(e)}")
         return None
 
+# --- NEW: POP-UP MODAL UNTUK UNDUH DOKUMEN ---
+@st.dialog("📥 Dokumen Siap Diunduh!")
+def show_download_popup(buffer, filename, details):
+    st.success("🎉 AI Berhasil memformat berkas Anda dengan sempurna.")
+    
+    # Animasi kecil di dalam pop-up
+    lottie_pop = load_lottieurl("https://lottie.host/80e98031-6453-48b4-bb50-bf654c6ee1ff/t3Kx56jU2W.json") # Animasi sukses/centang jika ada
+    
+    st.markdown(f"""
+    **Detail Berkas:**
+    - **Nama File:** `{filename}`
+    - **Jenis:** Microsoft Word (.docx)
+    - **Kurikulum:** KBC Deep Learning 2026
+    """)
+    st.info("Silakan klik tombol premium di bawah ini untuk menyimpan file ke perangkat Anda.")
+    
+    # Tombol download ditaruh tepat di dalam pop-up tengah layar
+    st.download_button(
+        label="📥 UNDUH SEKARANG (WORD)",
+        data=buffer,
+        file_name=filename,
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True
+    )
+
 # --- UI STREAMLIT INTERFACE ---
 from streamlit_lottie import st_lottie
 lottie_edu = load_lottieurl("https://lottie.host/e2d09c31-7290-482a-9957-c59800742f1f/o86M61f87s.json")
@@ -309,12 +328,12 @@ with col_main:
     
     c1, c2 = st.columns(2)
     with c1:
-        mapel = st.text_input("Mata Pelajaran", "Akidah Akhlak")
+        mapel = st.text_input("Mata Pelajaran", "Matematika")
     with c2:
         kelas = st.text_input("Kelas / Fase", "VII / D")
     
     tahun_ajaran = st.text_input("Tahun Ajaran", "2026/2027")
-    materi = st.text_area("Topik Utama / Materi", "Bab 1 : Akidah Islam", height=120)
+    materi = st.text_area("Topik Utama / Materi", "Pecahan dan Desimal", height=120)
     
     btn = st.button("✨ JALANKAN GENERASI CERDAS", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -322,7 +341,7 @@ with col_main:
 with col_preview:
     st.markdown('<div class="main-card">', unsafe_allow_html=True)
     st.markdown("### 🔍 Info Kurikulum KBC")
-    st.write("Format Word diperbarui agar sesuai dengan cetakan lembar Identitas Modul resmi.")
+    st.write("UX Diperbarui: Aplikasi sekarang menggunakan sistem Pop-up Modal premium saat file selesai diproses.")
     st.markdown('</div>', unsafe_allow_html=True)
 
 if btn:
@@ -349,15 +368,8 @@ if btn:
         content = get_ai_response_kbc(user_prompt, sys_prompt)
 
         if content:
-            st.balloons()
-            st.success("✅ Konten Berhasil Dibuat!")
             buffer = create_word_doc_kbc(content, doc_type, data)
             if buffer:
                 fname = f"KBC2026_{doc_type}_{mapel}.docx"
-                st.download_button(
-                    label="📥 DOWNLOAD DOKUMEN WORD",
-                    data=buffer,
-                    file_name=fname,
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+                # Memanggil fungsi pop-up modal secara langsung tanpa balon
+                show_download_popup(buffer, fname, data)
