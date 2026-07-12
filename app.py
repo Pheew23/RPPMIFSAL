@@ -263,7 +263,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 # --- NEW: POP-UP MODAL UNTUK UNDUH DOKUMEN ---
 @st.dialog("📥 Dokumen Siap Diunduh!")
 def show_download_popup(buffer, filename, details):
-    st.success("🎉 AI Berhasil memformat berkas Anda dengan sempurna.")
+    st.success("🎉 Beres Ya Kerjaan Saya!.")
     
     # Animasi kecil di dalam pop-up
     lottie_pop = load_lottieurl("https://lottie.host/80e98031-6453-48b4-bb50-bf654c6ee1ff/t3Kx56jU2W.json") # Animasi sukses/centang jika ada
@@ -274,7 +274,7 @@ def show_download_popup(buffer, filename, details):
     - **Jenis:** Microsoft Word (.docx)
     - **Kurikulum:** KBC Deep Learning 2026
     """)
-    st.info("Silakan klik tombol premium di bawah ini untuk menyimpan file ke perangkat Anda.")
+    st.info("Silakan klik untuk donwload.")
     
     # Tombol download ditaruh tepat di dalam pop-up tengah layar
     st.download_button(
@@ -370,6 +370,6 @@ if btn:
         if content:
             buffer = create_word_doc_kbc(content, doc_type, data)
             if buffer:
-                fname = f"KBC2026_{doc_type}_{mapel}.docx"
+                fname = f"KBC2026_{doc_type}_{kelas}_{mapel}.docx"
                 # Memanggil fungsi pop-up modal secara langsung tanpa balon
                 show_download_popup(buffer, fname, data)
