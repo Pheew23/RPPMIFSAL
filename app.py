@@ -3,6 +3,7 @@ import requests
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from io import BytesIO
 import re
@@ -101,7 +102,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         st.error(f"Koneksi Bermasalah: {str(e)}")
         return None
 
-def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
+def set_font_safe(run, font_name='Times New Roman', size=11, bold=False):
     if run is None: return
     run.font.name = font_name
     run.font.size = Pt(size)
@@ -119,49 +120,85 @@ def clean_markdown_symbols(text):
     text = re.sub(r'^[-*]\s+', '', text)
     return text.strip()
 
+# --- UTILITY UNTUK MENGAKTIFKAN LAYOUT 2 KOLOM ---
+def set_document_to_two_columns(section):
+    sectPr = section._sectPr
+    cols = OxmlElement('w:cols')
+    cols.set(qn('w:num'), '2')  
+    cols.set(qn('w:space'), '500')  # Margin jarak antar kolom yang seimbang
+    sectPr.append(cols)
+
 def create_word_doc_kbc(content, doc_type, school_data):
     try:
         doc = Document()
+        
+        # Pengaturan Margin Kertas Resmi (Ramping & Efisien)
+        current_section = doc.sections[0]
+        current_section.top_margin = Inches(0.6)
+        current_section.bottom_margin = Inches(0.6)
+        current_section.left_margin = Inches(0.6)
+        current_section.right_margin = Inches(0.6)
+
         style = doc.styles['Normal']
         style.font.name = 'Times New Roman'
-        style.font.size = Pt(12)
+        style.font.size = Pt(10.5) 
         style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Times New Roman')
         
-        # 1. JUDUL DOKUMEN / KOP SOAL DINAMIS
+        # --- [1 KOLOM] KOP UTAMA & PANEL INFORMASI ---
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=14, bold=True)
-        set_font_safe(p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n"), size=14, bold=True)
-        set_font_safe(p_title.add_run(f"MATERI: {school_data['materi'].upper()}\n"), size=14, bold=True)
+        p_title.paragraph_format.space_after = Pt(2)
+        set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=13, bold=True)
+        set_font_safe(p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n"), size=11, bold=True)
+        set_font_safe(p_title.add_run(f"MATERI: {school_data['materi'].upper()}\n"), size=11, bold=True)
         
-        doc.add_paragraph()
+        # Garis Pembatas Kop
+        p_line = doc.add_paragraph()
+        p_line.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p_line.paragraph_format.space_after = Pt(8)
+        set_font_safe(p_line.add_run("=" * 85), size=10, bold=True)
         
-        # 2. LEMBAR IDENTITAS PESERTA / DOKUMEN
-        set_font_safe(doc.add_paragraph().add_run("A. IDENTITAS DOKUMEN"), size=12, bold=True)
-
-        items = [
-            ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
-            ("Nama Penyusun", f": {school_data['nama_guru']}"),
-            ("Mata Pelajaran", f": {school_data['mapel']}"),
-            ("Kelas / Fase Tingkat", f": {school_data['kelas']}"),
-            ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
+        # Identitas Naskah Soal Ringkas Berdampingan (Menggunakan Tabel Tanpa Border agar Rapi)
+        table_id = doc.add_table(rows=3, cols=2)
+        table_id.autofit = True
+        
+        labels_kiri = [
+            f"Satuan Pendidikan : {school_data['nama_madrasah']}",
+            f"Mata Pelajaran    : {school_data['mapel']}",
+            f"Kelas / Fase      : {school_data['kelas']}"
         ]
+        labels_kanan = [
+            f"Tahun Pelajaran  : {school_data['tahun_ajaran']}",
+            f"Penyusun/Guru    : {school_data['nama_guru']}",
+            f"Sifat Ujian      : Mandiri / Tutup Buku"
+        ]
+        
+        for idx in range(3):
+            row = table_id.rows[idx]
+            # Kolom Kiri
+            p_cell_l = row.cells[0].paragraphs[0]
+            p_cell_l.paragraph_format.space_after = Pt(2)
+            set_font_safe(p_cell_l.add_run(labels_kiri[idx]), size=10)
+            # Kolom Kanan
+            p_cell_r = row.cells[1].paragraphs[0]
+            p_cell_r.paragraph_format.space_after = Pt(2)
+            set_font_safe(p_cell_r.add_run(labels_kanan[idx]), size=10)
 
-        if "tingkat_kesulitan" in school_data:
-            items.append(("Tingkat Kesulitan", f": {school_data['tingkat_kesulitan']}"))
-
-        for label, value in items:
-            p = doc.add_paragraph()
-            p.paragraph_format.left_indent = Inches(0.4)
-            set_font_safe(p.add_run(f"{label:<25}"), size=12)
-            set_font_safe(p.add_run(value), size=12)
+        # Hapus garis border tabel identitas agar bersih
+        for row in table_id.rows:
+            for cell in row.cells:
+                cell.width = Inches(3.5)
 
         doc.add_paragraph()
 
-        # Parse isi dokumen AI ke format teks Word resmi
+        # --- MASUK KE MODUL [2 KOLOM] AREA NASKAH SOAL ---
+        soal_section = doc.add_section()
+        set_document_to_two_columns(soal_section)
+
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
+        
         for line in lines:
             stripped = line.strip()
             if stripped.startswith('|') and not re.match(r'^\|[\s\-:]+\|$', stripped):
@@ -183,7 +220,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
                                     if c_idx < len(row.cells):
                                         row.cells[c_idx].text = cell_text
                                         for p in row.cells[c_idx].paragraphs:
-                                            for run in p.runs: set_font_safe(run, size=11, bold=(r_idx==0))
+                                            for run in p.runs: set_font_safe(run, size=9.5, bold=(r_idx==0))
                         except: pass
                         table_buffer = []
                         in_table_mode = False
@@ -192,33 +229,20 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     doc.add_paragraph()
                     continue
                 p = doc.add_paragraph()
-                is_bold, font_size = False, 12
+                p.paragraph_format.space_after = Pt(2) # Spasi antar baris pertanyaan sangat rapat
+                is_bold, font_size = False, 10.5
                 if stripped.startswith('# '):
-                    stripped, is_bold, font_size = stripped[2:], True, 14
+                    stripped, is_bold, font_size = stripped[2:], True, 11.5
+                    p.paragraph_format.space_before = Pt(6)
                 elif stripped.startswith('## '):
-                    stripped, is_bold, font_size = stripped[3:], True, 13
+                    stripped, is_bold, font_size = stripped[3:], True, 10.5
+                    p.paragraph_format.space_before = Pt(4)
                 if stripped.startswith('- ') or stripped.startswith('* '):
                     p.style = 'List Bullet'
                     stripped = stripped[2:]
                 set_font_safe(p.add_run(clean_markdown_symbols(stripped)), size=font_size, bold=is_bold)
 
-        # Bagian Lembar Tanda Tangan Mandatori
-        doc.add_paragraph("\n")
-        sig_table = doc.add_table(rows=1, cols=2)
-        cell_kiri = sig_table.cell(0, 0)
-        p_kiri = cell_kiri.paragraphs[0]
-        p_kiri.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r_kiri_1 = p_kiri.add_run(f"Mengetahui,\nKepala Madrasah\n\n\n\n\n")
-        set_font_safe(r_kiri_1, size=12)
-        r_kiri_2 = p_kiri.add_run(f"( {school_data['kepala_madrasah']} )\nNIP. {school_data['nip_kepala']}")
-        set_font_safe(r_kiri_2, size=12, bold=True)
-        cell_kanan = sig_table.cell(0, 1)
-        p_kanan = cell_kanan.paragraphs[0]
-        p_kanan.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r_kanan_1 = p_kanan.add_run(f"{school_data['kota']}, {school_data['tanggal_buat']}\nGuru Mata Pelajaran\n\n\n\n\n")
-        set_font_safe(r_kanan_1, size=12)
-        r_kanan_2 = p_kanan.add_run(f"( {school_data['nama_guru']} )\nNIP. {school_data['nip_guru']}")
-        set_font_safe(r_kanan_2, size=12, bold=True)
+        # NOTE: Bagian tabel Tanda Tangan Kepala Sekolah & Guru sengaja DIBUANG sepenuhnya di sini agar naskah bersih.
 
         buffer = BytesIO()
         doc.save(buffer)
@@ -232,11 +256,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
 @st.dialog("📥 Berkas Anda Telah Siap!")
 def show_download_popup(buffer, filename, details):
     st.markdown('<div class="p-badge">Status: Sukses</div>', unsafe_allow_html=True)
-    st.write(f"### 🎉 Dokumen Berhasil Dibuat!")
+    st.write(f"### 🎉 Naskah Soal Terbentuk!")
     st.markdown(f"""
-    Berkas ujian/perangkat mengajar Anda telah selesai dirakit otomatis.
+    Lembar ujian Anda telah diformat menggunakan layout **Dual Kolom Kertas Resmi (Tanpa Kolom Tanda Tangan)**.
     * **Nama Berkas:** `{filename}`
-    * **Pendekatan Teks:** Kurikulum Berbasis Cinta (KBC) 2026
+    * **Ukuran Font Dasar:** 10.5 pt (Rapi & Padat)
     """)
     st.divider()
     st.download_button(
@@ -264,10 +288,9 @@ st.divider()
 tab_setup, tab_materi, tab_soal = st.tabs([
     "🏛️ Langkah 1: Profil Lembaga", 
     "📚 Langkah 2: Modul Pembelajaran", 
-    "📝 Langkah 3: Modul Bank Soal"
+    "📝 Langkah 3: Modul Bank Soal (Dual Column & Tanpa TTD)"
 ])
 
-# INTI FIX ELEMEN: Deklarasi variabel ditaruh global di luar ekspander agar terdefinisi sempurna
 with tab_setup:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
     st.subheader("Informasi Instansi & Guru")
@@ -291,7 +314,7 @@ with tab_materi:
     cx, cy = st.columns(2)
     with cx:
         doc_type_materi = st.selectbox("Pilih Output Dokumen Perangkat", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
-        mapel_materi = st.text_input("Nama Mata Pelajaran", "Akidah Akhlak", key="mp_materi")
+        mapel_materi = st.text_input("Mata Pelajaran", "Akidah Akhlak", key="mp_materi")
     with cy:
         kelas_materi = st.text_input("Kelas / Fase Tingkat", "IV / Fase B", key="kls_materi")
         tahun_ajaran_materi = st.text_input("Periode Tahun Ajaran", "2026/2027", key="ta_materi")
@@ -302,7 +325,7 @@ with tab_materi:
 
 with tab_soal:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian")
+    st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian (Hasil Akhir Dual Kolom)")
     
     c_soal1, c_soal2 = st.columns(2)
     with c_soal1:
@@ -332,7 +355,7 @@ with st.sidebar:
     st.markdown("Pilih tab di halaman tengah untuk menentukan tipe file output berkas Anda.")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
 
-# --- PROSES EKSEKUSI TAB 2: PERANGKAT MENGAJAR ---
+# --- PROSES EKSEKUSI TAB 2 ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
@@ -352,7 +375,7 @@ if btn_materi:
             if buffer:
                 show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", data)
 
-# --- PROSES EKSEKUSI TAB 3: LEMBAR SOAL DENGAN MENGIRIM DATA LENGKAP ---
+# --- PROSES EKSEKUSI TAB 3 ---
 if btn_soal:
     if not nama_madrasah or not materi_soal:
         st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
