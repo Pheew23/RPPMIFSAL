@@ -90,7 +90,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
     }
     try:
-        with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
+        with st.status(f"❤️ Lagos AI Sedang Merakit Berkas...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
                 status.update(label="✅ Perumusan Konten Selesai!", state="complete", expanded=False)
@@ -112,7 +112,7 @@ def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
     rFonts = rpr.get_or_add_rFonts()
     rFonts.set(qn('w:eastAsia'), font_name)
     rFonts.set(qn('w:cs'), font_name)
-    return run # Mengembalikan objek run agar tidak menghasilkan NoneType
+    return run
 
 def clean_markdown_symbols(text):
     if not text: return ""
@@ -142,7 +142,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Times New Roman')
         style.paragraph_format.space_after = Pt(6)
 
-        # KOP Madrasah Semula
         p1 = doc.add_paragraph()
         p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
         set_font_safe(p1.add_run(f"PEMERINTAH {school_data['kabupaten'].upper()}\n"), size=14, bold=True)
@@ -158,7 +157,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
         p_line = doc.add_paragraph()
         set_font_safe(p_line.add_run("_" * 70), size=10)
 
-        # FIX: Mengatur underline dengan aman tanpa memicu crash 'NoneType'
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
@@ -172,7 +170,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
         doc.add_paragraph()
 
-        # Parse Isi Konten
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
@@ -216,7 +213,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     stripped = stripped[2:]
                 set_font_safe(p.add_run(clean_markdown_symbols(stripped)), size=font_size, bold=is_bold)
 
-        # Tanda Tangan Semula
         doc.add_paragraph("\n")
         sig_table = doc.add_table(rows=1, cols=2)
         p_kiri = sig_table.cell(0, 0).paragraphs[0]
@@ -239,7 +235,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
 
 # ==========================================
-# FORMAT 2: KHUSUS SOAL UJIAN REVISI (DUAL KOLOM + TATA LETAK GAMBAR + TANPA TTD)
+# FORMAT 2: KHUSUS SOAL UJIAN REVISI (DUAL KOLOM + TANPA TTD)
 # ==========================================
 def create_word_soal_kbc(content, doc_type, school_data):
     try:
@@ -255,20 +251,17 @@ def create_word_soal_kbc(content, doc_type, school_data):
         style.font.size = Pt(10.5)
         style.paragraph_format.space_after = Pt(2)
         
-        # KOP Ujian Sesuai Gambar
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         set_font_safe(p_title.add_run(f"MADRASAH IBTIDAIYAH {school_data['nama_madrasah'].replace('MI ', '').upper()}\n"), size=14, bold=True)
         set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=14, bold=True)
         set_font_safe(p_title.add_run(f"TAHUN PELAJARAN {school_data['tahun_ajaran']}"), size=14, bold=True)
         
-        # Garis Pembatas Kop
         set_font_safe(doc.add_paragraph().add_run("_" * 88), size=10, bold=True)
         p_l2 = doc.add_paragraph()
         p_l2.paragraph_format.space_after = Pt(8)
         set_font_safe(p_l2.add_run("_" * 88), size=10, bold=True)
         
-        # Grid Identitas Siswa Sesuai Gambar
         table_id = doc.add_table(rows=3, cols=2)
         labels_kiri = [
             f"Nama            : ....................................",
@@ -287,7 +280,6 @@ def create_word_soal_kbc(content, doc_type, school_data):
 
         doc.add_paragraph()
 
-        # Pemisah Ke Layout 2 Kolom Soal
         soal_section = doc.add_section()
         set_document_to_two_columns(soal_section)
 
@@ -414,11 +406,20 @@ with tab_soal:
     btn_soal = st.button("📝 GENERASIKAN LEMBAR BANK SOAL", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
+# --- REVISI SIDEBAR: MENAMBAHKAN INFORMASI DI BAWAH KONTROL ADMINISTRASI ---
 with st.sidebar:
     st.header("📋 Kontrol Administrasi")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
+    
+    # Injeksi Teks Informasi sesuai permintaan agar tersampaikan ke user
+    st.divider()
+    st.info("""
+    💡 **Informasi Layout Kerja:**
+    * **Langkah 2 (Modul Ajar):** Menggunakan format standar dinas asli (1 Kolom + Lembar Tanda Tangan).
+    * **Langkah 3 (Bank Soal):** Menggunakan format Lembar Ujian Kustom (2 Kolom Rapi + Kolom Isian Siswa Manual + Tanpa Tanda Tangan).
+    """)
 
-# --- PROSES EKSEKUSI TAB 2: FORMAT SEMULA MENGGUNAKAN DOKUMEN FIX ---
+# --- PROSES EKSEKUSI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
@@ -436,9 +437,8 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Tugas Saya Sudah Selesai, ada yang bisa di bantu lg?.")
+                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Berkas perangkat mengajar Anda telah selesai dirakit otomatis dengan format standar dinas asli.")
 
-# --- PROSES EKSEKUSI TAB 3: FORMAT SOAL CUSTOM REVISI ---
 if btn_soal:
     if not nama_madrasah or not materi_soal:
         st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
