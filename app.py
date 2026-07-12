@@ -104,7 +104,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         return None
 
 def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
-    if run is None: return
+    if run is None: return run
     run.font.name = font_name
     run.font.size = Pt(size)
     run.bold = bold
@@ -112,6 +112,7 @@ def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
     rFonts = rpr.get_or_add_rFonts()
     rFonts.set(qn('w:eastAsia'), font_name)
     rFonts.set(qn('w:cs'), font_name)
+    return run # Mengembalikan objek run agar tidak menghasilkan NoneType
 
 def clean_markdown_symbols(text):
     if not text: return ""
@@ -157,10 +158,17 @@ def create_word_doc_kbc(content, doc_type, school_data):
         p_line = doc.add_paragraph()
         set_font_safe(p_line.add_run("_" * 70), size=10)
 
+        # FIX: Mengatur underline dengan aman tanpa memicu crash 'NoneType'
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=14, bold=True).underline = True
-        set_font_safe(p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']}"), size=14, bold=True).underline = True
+        
+        run_title1 = p_title.add_run(f"{doc_type.upper()}\n")
+        set_font_safe(run_title1, size=14, bold=True)
+        run_title1.underline = True
+        
+        run_title2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']}")
+        set_font_safe(run_title2, size=14, bold=True)
+        run_title2.underline = True
 
         doc.add_paragraph()
 
@@ -254,13 +262,13 @@ def create_word_soal_kbc(content, doc_type, school_data):
         set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=14, bold=True)
         set_font_safe(p_title.add_run(f"TAHUN PELAJARAN {school_data['tahun_ajaran']}"), size=14, bold=True)
         
-        # Garis Pembatas
+        # Garis Pembatas Kop
         set_font_safe(doc.add_paragraph().add_run("_" * 88), size=10, bold=True)
         p_l2 = doc.add_paragraph()
         p_l2.paragraph_format.space_after = Pt(8)
         set_font_safe(p_l2.add_run("_" * 88), size=10, bold=True)
         
-        # Grid Identitas Siswa
+        # Grid Identitas Siswa Sesuai Gambar
         table_id = doc.add_table(rows=3, cols=2)
         labels_kiri = [
             f"Nama            : ....................................",
@@ -299,8 +307,6 @@ def create_word_soal_kbc(content, doc_type, school_data):
                 p.style = 'List Bullet'
                 stripped = stripped[2:]
             set_font_safe(p.add_run(clean_markdown_symbols(stripped)), size=font_size, bold=is_bold)
-
-        # Tanpa TTD Kepala Sekolah & Guru (Dihapus)
 
         buffer = BytesIO()
         doc.save(buffer)
@@ -354,6 +360,7 @@ with tab_setup:
         jenis = st.selectbox("Jenjang Satuan", ["MI/SD", "MTs/SMP", "MA/SMA"])
         kabupaten = st.text_input("Kabupaten/Kota Domisili", "Kota Bogor")
         alamat = st.text_area("Alamat Lengkap", "Jl. Rimba Mulya II No.46, Pasirmulya, Bogor Barat", height=68)
+        telp = st.text_input("Telp", "")
     with col2:
         nama_guru = st.text_input("Nama Lengkap Guru (Penyusun)", "Guru Pengajar")
         nip_guru = st.text_input("NIP Guru", "-")
@@ -411,13 +418,13 @@ with st.sidebar:
     st.header("📋 Kontrol Administrasi")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
 
-# --- PROSES EKSEKUSI TAB 2: FORMAT SEMULA ---
+# --- PROSES EKSEKUSI TAB 2: FORMAT SEMULA MENGGUNAKAN DOKUMEN FIX ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
     else:
         data = {
-            "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, "telp": telp if 'telp' in locals() else "",
+            "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, "telp": telp,
             "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
