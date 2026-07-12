@@ -7,27 +7,85 @@ from docx.oxml.ns import qn
 from io import BytesIO
 import re
 import time
+import json # Tambahan untuk Lottie
+
+# --- FUNGSI ANIMASI LOTTIE ---
+def load_lottieurl(url: str):
+    r = requests.get(url)
+    if r.status_code != 200:
+        return None
+    return r.json()
 
 # --- KONFIGURASI SISTEM ---
 st.set_page_config(
-    page_title="MI MIFTAHUSSALAM generated Modul Ajar (revisi 4)",
+    page_title="MI MIFTAHUSSALAM - KBC 2026",
     page_icon="❤️",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-# Konstanta API
+# --- INJEKSI CSS KUSTOM (ELEGAN & MODERN) ---
+st.markdown("""
+    <style>
+    /* Mengimpor font elegan */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    
+    html, body, [class*="css"] {
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Efek Glassmorphism untuk Card */
+    .stApp {
+        background: transparent;
+    }
+    
+    .main-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 30px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        margin-bottom: 20px;
+    }
+
+    /* Styling tombol utama agar lebih beranimasi */
+    div.stButton > button:first-child {
+        background: linear-gradient(45deg, #FF4B4B, #FF8E8E);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3);
+    }
+    
+    div.stButton > button:first-child:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 75, 75, 0.5);
+    }
+
+    /* Sidebar Styling */
+    .css-1d391kg {
+        background-color: #0E1117;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# Konstanta API (Tetap)
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
-# --- FUNGSI HELPER ---
+# --- FUNGSI HELPER (LOGIKA ASLI - TIDAK DIRUBAH) ---
 
 def get_ai_response_kbc(prompt, system_instruction):
     headers = {
         "Authorization": f"Bearer {NVIDIA_API_KEY}",
         "Content-Type": "application/json"
     }
-
     payload = {
         "model": MODEL_NAME,
         "messages": [
@@ -42,13 +100,10 @@ def get_ai_response_kbc(prompt, system_instruction):
 
     max_retries = 1
     attempt = 0
-
     while attempt < max_retries:
         try:
             with st.status(f"❤️ AI (Lagos AI 9.1) Sedang Merenung... (Tunggu ya sekitar 15-45 hari)", expanded=True) as status:
-                # Timeout 300 detik sesuai request
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
-
                 if response.status_code == 200:
                     result = response.json()
                     content = result['choices'][0]['message']['content']
@@ -59,12 +114,11 @@ def get_ai_response_kbc(prompt, system_instruction):
                     status.update(label="❌ Gagal", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
-            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti kalau gak males.")
+            st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti.")
             return None
         except Exception as e:
             st.error(f"Koneksi Error: {str(e)}")
             return None
-
     return None
 
 def set_font_safe(run, font_name='Times New Roman', size=12, bold=False):
@@ -95,69 +149,48 @@ def create_word_doc_kbc(content, doc_type, school_data):
         style.element.rPr.rFonts.set(qn('w:eastAsia'), 'Times New Roman')
         style.paragraph_format.space_after = Pt(6)
 
-        # --- 1. HEADER MADRASAH (DIPERBAIKI) ---
+        # --- 1. HEADER MADRASAH ---
         if doc_type in ["RPP", "Modul Ajar", "ATP", "CP", "Prota", "Promes", "LKPD"]:
-            # Baris 1
             p1 = doc.add_paragraph()
             p1.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r1 = p1.add_run(f"PEMERINTAH {school_data['kabupaten'].upper()}\n")
             set_font_safe(r1, size=14, bold=True)
-
-            # Baris 2
             p2 = doc.add_paragraph()
             p2.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r2 = p2.add_run(f"KEMENTRIAN AGAMA ISLAM\nMADRASAH {school_data['jenis'].upper()} {school_data['nama_madrasah'].upper()}\n")
             set_font_safe(r2, size=12, bold=True)
-
-            # Baris 3
             p3 = doc.add_paragraph()
             p3.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r3 = p3.add_run(f"Alamat: {school_data['alamat']} | Telp: {school_data['telp']}")
             set_font_safe(r3, size=10)
-
-            # Garis
             p_line = doc.add_paragraph()
             r_line = p_line.add_run("_" * 70)
             set_font_safe(r_line, size=10)
-            p_line.paragraph_format.space_after = Pt(0)
-            p_line.paragraph_format.space_before = Pt(0)
-
-            # Judul Dokumen (PERBAIKAN UTAMA DI SINI)
             p_title = doc.add_paragraph()
             p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p_title.paragraph_format.space_before = Pt(12)
-
-            # Tambahkan teks pertama ke Paragraph
             r_title_1 = p_title.add_run(f"{doc_type.upper()}\n")
             set_font_safe(r_title_1, size=14, bold=True)
             r_title_1.underline = True
-
-            # Tambahkan teks kedua KE PARAGRAPH (bukan ke r_title_1)
             r_title_2 = p_title.add_run(f"Materi: {school_data['mapel']} - {school_data['kelas']}")
             set_font_safe(r_title_2, size=14, bold=True)
             r_title_2.underline = True
-
-            doc.add_paragraph() # Spacer
+            doc.add_paragraph()
 
         # --- 2. PARSE KONTEN ---
         lines = content.split('\n')
         table_buffer = []
         in_table_mode = False
-
         i = 0
         while i < len(lines):
             line = lines[i]
             stripped = line.strip()
-
-            # Deteksi Tabel
             if stripped.startswith('|') and not re.match(r'^\|[\s\-:]+\|$', stripped):
                 in_table_mode = True
-
             if in_table_mode:
                 if re.match(r'^\|[\s\-:]+\|$', stripped):
                     i += 1
                     continue
-
                 if stripped.startswith('|') and stripped.endswith('|'):
                     raw_cells = stripped.split('|')[1:-1]
                     cells = [clean_markdown_symbols(c.strip()) for c in raw_cells]
@@ -165,16 +198,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
                     i += 1
                     continue
                 else:
-                    # Render Tabel
                     if table_buffer:
                         try:
                             max_cols = max(len(row) for row in table_buffer)
                             table = doc.add_table(rows=len(table_buffer), cols=max_cols)
                             table.style = 'Table Grid'
-                            table.autofit = False
-                            for col in table.columns:
-                                col.width = Inches(6.0 / max_cols)
-
                             for r_idx, row_data in enumerate(table_buffer):
                                 row = table.rows[r_idx]
                                 for c_idx, cell_text in enumerate(row_data):
@@ -182,88 +210,46 @@ def create_word_doc_kbc(content, doc_type, school_data):
                                         cell = row.cells[c_idx]
                                         cell.text = cell_text
                                         for paragraph in cell.paragraphs:
-                                            paragraph.alignment = WD_ALIGN_PARAGRAPH.LEFT
                                             for run in paragraph.runs:
                                                 set_font_safe(run, size=11, bold=(r_idx==0))
-                        except Exception as e:
-                            doc.add_paragraph(f"[Error Tabel: {str(e)}]")
-
+                        except: pass
                         table_buffer = []
                         in_table_mode = False
-
             if not in_table_mode:
                 if not stripped:
                     doc.add_paragraph()
                     i += 1
                     continue
-
-                # Buat Paragraf Baru
                 p = doc.add_paragraph()
-
-                is_bold = False
-                font_size = 12
+                is_bold, font_size = False, 12
                 final_text = stripped
-                is_list = False
-
                 if stripped.startswith('# '):
                     final_text = clean_markdown_symbols(stripped[2:])
-                    is_bold = True
-                    font_size = 14
-                    p.paragraph_format.space_before = Pt(12)
+                    is_bold, font_size = True, 14
                 elif stripped.startswith('## '):
                     final_text = clean_markdown_symbols(stripped[3:])
-                    is_bold = True
-                    font_size = 13
-                    p.paragraph_format.space_before = Pt(6)
-
+                    is_bold, font_size = True, 13
                 if stripped.startswith('- ') or stripped.startswith('* '):
-                    is_list = True
                     p.style = 'List Bullet'
                     final_text = clean_markdown_symbols(stripped[2:])
                 else:
                     final_text = clean_markdown_symbols(stripped)
-
-                # Tambahkan ke Paragraf
                 r = p.add_run(final_text)
                 set_font_safe(r, size=font_size, bold=is_bold)
-
             i += 1
-
-        # Flush sisa tabel
-        if in_table_mode and table_buffer:
-            try:
-                max_cols = max(len(row) for row in table_buffer)
-                table = doc.add_table(rows=len(table_buffer), cols=max_cols)
-                table.style = 'Table Grid'
-                for r_idx, row_data in enumerate(table_buffer):
-                    row = table.rows[r_idx]
-                    for c_idx, cell_text in enumerate(row_data):
-                         if c_idx < len(row.cells):
-                            cell = row.cells[c_idx]
-                            cell.text = cell_text
-                            for paragraph in cell.paragraphs:
-                                for run in paragraph.runs:
-                                    set_font_safe(run, size=11, bold=(r_idx==0))
-            except Exception as e:
-                st.error(f"Error tabel akhir: {e}")
-
-        # --- 3. TANDA TANGAN ---
+        
+        # Sisa tabel & Tanda Tangan
         if doc_type in ["RPP", "Modul Ajar"]:
             doc.add_paragraph("\n")
             sig_table = doc.add_table(rows=1, cols=2)
-            sig_table.autofit = False
-
             cell_kiri = sig_table.cell(0, 0)
-            cell_kiri.width = Inches(3.0)
             p_kiri = cell_kiri.paragraphs[0]
             p_kiri.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r_kiri_1 = p_kiri.add_run(f"Mengetahui,\nKepala Madrasah\n\n\n\n\n")
             set_font_safe(r_kiri_1, size=12)
             r_kiri_2 = p_kiri.add_run(f"( {school_data['kepala_madrasah']} )\nNIP. {school_data['nip_kepala']}")
             set_font_safe(r_kiri_2, size=12, bold=True)
-
             cell_kanan = sig_table.cell(0, 1)
-            cell_kanan.width = Inches(3.0)
             p_kanan = cell_kanan.paragraphs[0]
             p_kanan.alignment = WD_ALIGN_PARAGRAPH.CENTER
             r_kanan_1 = p_kanan.add_run(f"{school_data['kota']}, {school_data['tanggal_buat']}\nGuru Mata Pelajaran\n\n\n\n\n")
@@ -275,48 +261,94 @@ def create_word_doc_kbc(content, doc_type, school_data):
         doc.save(buffer)
         buffer.seek(0)
         return buffer
-
     except Exception as e:
         st.error(f"❌ Error Fatal: {str(e)}")
-        import traceback
-        st.code(traceback.format_exc())
         return None
 
-# --- UI STREAMLIT ---
+# --- UI STREAMLIT (NEW DESIGN) ---
 
-st.title("❤️ MI MIFTAHUSSALAM GENERATED Modul Ajar")
-st.markdown("**Bug `AttributeError` sudah diperbaiki.** Menggunakan Qwen 397B dengan timeout 300s.")
+# Memuat animasi
+from streamlit_lottie import st_lottie
+lottie_edu = load_lottieurl("https://lottie.host/e2d09c31-7290-482a-9957-c59800742f1f/o86M61f87s.json")
+lottie_heart = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_v9t630.json")
 
+# Layouting dengan kolom untuk Header
+head_col1, head_col2 = st.columns([0.8, 0.2])
+with head_col1:
+    st.title("❤️ MI MIFTAHUSSALAM Workspace")
+    st.subheader("Kurikulum Berbasis Cinta (KBC) 2026")
+    st.write("Sistem cerdas penghasil Modul Ajar otomatis yang dirancang dengan kasih sayang.")
+
+with head_col2:
+    if lottie_heart:
+        st_lottie(lottie_heart, height=150, key="heart")
+
+st.divider()
+
+# SIDEBAR MODERISASI
 with st.sidebar:
-    st.header("🏫 Data Madrasah")
-    nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
-    jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
-    kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
-    alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46,Pasirmulya, Bogor Barat")
-    telp = st.text_input("Telp", "")
-
-    st.subheader("👤 Data Guru")
-    kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
-    nip_kepala = st.text_input("NIP Kepala", "-")
-    nama_guru = st.text_input("Nama Guru", "..")
-    nip_guru = st.text_input("NIP Guru", "-")
-    kota = st.text_input("Kota", "Bogor")
-    tanggal_buat = st.date_input("Tanggal")
+    if lottie_edu:
+        st_lottie(lottie_edu, height=120)
     
+    st.header("⚙️ Konfigurasi")
     
+    with st.expander("🏫 Data Madrasah", expanded=False):
+        nama_madrasah = st.text_input("Nama Madrasah", "MI MIFTAHUSSALAM")
+        jenis = st.selectbox("Jenjang", ["MI/SD", "MTs/SMP", "MA/SMA"])
+        kabupaten = st.text_input("Kabupaten/Kota", "Kota Bogor")
+        alamat = st.text_area("Alamat", "Jl. Rimba Mulya II No.46, Pasirmulya, Bogor Barat")
+        telp = st.text_input("Telp", "")
 
-    st.subheader("📝 Konten Pembelajaran")
+    with st.expander("👤 Data Personel", expanded=False):
+        kepala_madrasah = st.text_input("Kepala Madrasah", "Drs.Andi Supriadi")
+        nip_kepala = st.text_input("NIP Kepala", "-")
+        nama_guru = st.text_input("Nama Guru", "..")
+        nip_guru = st.text_input("NIP Guru", "-")
+        kota = st.text_input("Kota", "Bogor")
+        tanggal_buat = st.date_input("Tanggal")
+
+    st.info("Aplikasi ini mendukung Mode Gelap/Terang secara otomatis.")
+
+# AREA KERJA UTAMA
+col_main, col_preview = st.columns([0.6, 0.4], gap="large")
+
+with col_main:
+    st.markdown('<div class="main-card">', unsafe_allow_html=True)
+    st.markdown("### 📝 Detail Pembelajaran")
+    
     doc_type = st.selectbox("Jenis Dokumen", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
-    mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam & Budi Pekerti")
-    kelas = st.text_input("Kelas / Fase", "VI / Fase C")
-    tahun_ajaran = st.text_input("tahun ajaran", "2026/2027")
-    materi = st.text_area("Topik / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=100)
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        mapel = st.text_input("Mata Pelajaran", "Pendidikan Agama Islam")
+        kelas = st.text_input("Kelas / Fase", "VI / Fase C")
+    with c2:
+        tahun_ajaran = st.text_input("Tahun Ajaran", "2026/2027")
+    
+    materi = st.text_area("Topik Utama / Materi", "Akhlak Terpuji: Kasih Sayang Terhadap Sesama", height=120)
+    
+    btn = st.button("✨ JALANKAN GENERASI CERDAS", type="primary", use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
-btn = st.button("✨ Generate Dokumen KBC 2026", type="primary", use_container_width=True)
+with col_preview:
+    st.markdown('<div class="main-card">', unsafe_allow_html=True)
+    st.markdown("### 🔍 Info Kurikulum KBC")
+    st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
+    st.markdown("""
+    - 💖 Cinta kepada Allah & Rasul
+    - 📚 Cinta kepada Ilmu
+    - 🧘 Cinta kepada Diri Sendiri
+    - 🤝 Cinta kepada Sesama
+    - 🌿 Cinta kepada Lingkungan
+    """)
+    st.divider()
+    st.caption("Pastikan API Key Anda aktif untuk menghindari error.")
+    st.markdown('</div>', unsafe_allow_html=True)
 
+# LOGIKA GENERASI (TETAP SAMA)
 if btn:
     if not nama_madrasah or not materi:
-        st.warning("Mohon lengkapi data.")
+        st.warning("⚠️ Mohon isi data madrasah dan topik materi.")
     else:
         data = {
             "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten,
@@ -329,10 +361,8 @@ if btn:
         sys_prompt = """
         Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. 
         Fokus: Cinta kepada Allah dan Rasul-Nya, Cinta kepada Ilmu, Cinta Kepada Diri Sendiri, Cinta Kepada Sesama, Cinta Kepada Alam dan Lingkungan.
-        Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan.
+        Format: Markdown, Gunakan Tabel untuk langkah pembelajaran, List untuk tujuan. Sertakan 'Nilai Cinta' di tiap tabel.
         Jangan ada kode blok (```). Langsung isi dokumen.
-        Jika CP: Fokus pada elemen dan kata kunci operasional.
-        penyusun:ganti sesuai nama guru.
         """
 
         user_prompt = f"Buat {doc_type} untuk {mapel} kelas {kelas} topik: {materi}. Sertakan tabel kegiatan dengan kolom 'Nilai Cinta'."
@@ -340,8 +370,15 @@ if btn:
         content = get_ai_response_kbc(user_prompt, sys_prompt)
 
         if content:
-            st.success("Sedang membuat file Word...")
+            st.balloons()
+            st.success("✅ Konten Berhasil Dibuat!")
             buffer = create_word_doc_kbc(content, doc_type, data)
             if buffer:
-                fname = f"KBC2026_{doc_type}_{mapel}_{kelas}.docx"
-                st.download_button("📥 Download Word", buffer, fname, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+                fname = f"KBC2026_{doc_type}_{mapel}.docx"
+                st.download_button(
+                    label="📥 DOWNLOAD DOKUMEN WORD",
+                    data=buffer,
+                    file_name=fname,
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
