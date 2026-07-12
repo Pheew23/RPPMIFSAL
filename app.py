@@ -439,7 +439,7 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Pekerjaan Saya Selesai, ada yang bisa di bantu?.")
+                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Pekerjaan Saya Selesai, ada lagi yang bisa di bantu?.")
 
 if btn_soal:
     if not nama_madrasah or not materi_soal:
