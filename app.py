@@ -44,20 +44,24 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
+    /* DI SINI ADALAH PERUBAHAN TOMBOL PRESET TERBARU YANG LEBIH BESAR & FULL WIDTH */
     div.stButton > button:first-child {
         background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%);
         color: white;
         border: none;
-        padding: 14px 28px;
-        border-radius: 10px;
-        font-weight: 600;
+        padding: 18px 36px;          /* Jarak padding vertikal dan horizontal diperbesar */
+        border-radius: 12px;         /* Sudut melengkung tombol premium */
+        font-size: 1.2rem;           /* Teks huruf tombol diperbesar */
+        font-weight: 700;            /* Menjadikan ketebalan teks menjadi Bold */
+        letter-spacing: 1px;         /* Memberikan jarak renggang tipis antar huruf */
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 4px 18px rgba(255, 75, 75, 0.25);
+        box-shadow: 0 6px 20px rgba(255, 75, 75, 0.3);
+        width: 100%;                 /* Membuat tombol melebar penuh mengikuti kontainer */
     }
     
     div.stButton > button:first-child:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 22px rgba(255, 75, 75, 0.45);
+        transform: translateY(-3px); /* Efek melayang responsif yang lebih terasa */
+        box-shadow: 0 8px 25px rgba(255, 75, 75, 0.5);
     }
 
     .p-badge {
