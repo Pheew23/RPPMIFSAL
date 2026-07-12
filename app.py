@@ -64,25 +64,34 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(255, 75, 75, 0.5);
     }
 
-    /* 2. FIX UTAMA: MEMPERBESAR TEKS TAB LANGKAH DI ATAS */
-    div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
-        font-size: 1.3rem !important;  /* Ukuran huruf tab diperbesar */
-        font-weight: 700 !important;   /* Teks tab dibuat tebal (Bold) */
+/* 2. FIX UTAMA: MENGUBAH TAB MENJADI SHAPES TOMBOL KUSTOM YANG BESAR & TEBAL */
+    div[data-testid="stTabs"] button {
+        background-color: rgba(255, 255, 255, 0.05) !important; /* Latar belakang shape kotak dasar */
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;  /* Garis tepi shape */
+        border-radius: 30px !important;                          /* Sudut melengkung rounded pill shape */
+        padding: 12px 28px !important;                          /* Mempertebal area fisik shape kotak */
+        margin-right: 12px !important;                          /* Jarak antar shape menu */
+        transition: all 0.3s ease !important;
     }
     
-    div[data-testid="stTabs"] button {
-        padding: 10px 20px !important; /* Memberikan spasi agar tab lebih proporsional */
+    /* Efek visual ketika kursor diarahkan ke menu shape */
+    div[data-testid="stTabs"] button:hover {
+        background-color: rgba(255, 75, 75, 0.1) !important;
+        border-color: #FF7676 !important;
     }
-
-    .p-badge {
-        background: rgba(255, 75, 75, 0.1);
-        color: #FF4B4B;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        display: inline-block;
-        margin-bottom: 10px;
+    
+    /* Efek visual ketika tab menu sedang aktif dipilih (Terseleksi) */
+    div[data-testid="stTabs"] button[aria-selected="true"] {
+        background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%) !important; /* Warna gradasi merah KBC */
+        color: white !important;
+        border: none !important;
+        box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3) !important;
+    }
+    
+    /* Memperbesar ukuran teks huruf di dalam shape */
+    div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 1.25rem !important;  /* Huruf diperbesar signifikan */
+        font-weight: 700 !important;    /* Teks super tebal / Bold */
     }
     </style>
     """, unsafe_allow_html=True)
