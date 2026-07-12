@@ -82,16 +82,16 @@ def get_ai_response_kbc(prompt, system_instruction):
     attempt = 0
     while attempt < max_retries:
         try:
-            with st.status(f"❤️ AI Sedang Merenung... Hati-hati kurikulum ini penuh cinta...", expanded=True) as status:
+            with st.status(f"❤️ LAGOS AI Sedang Merenung... Tunggu 15-45s...", expanded=True) as status:
                 response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
                 if response.status_code == 200:
                     result = response.json()
                     content = result['choices'][0]['message']['content']
-                    status.update(label="✅ Selesai Dibuat!", state="complete", expanded=False)
+                    status.update(label="✅ Kerjaan Saya Beres Ya!", state="complete", expanded=False)
                     return content
                 else:
                     st.error(f"API Error: {response.status_code}")
-                    status.update(label="❌ Gagal", state="error")
+                    status.update(label="❌ HAHAHAHAHA Error, Coba Lagi!", state="error")
                     return None
         except requests.exceptions.ReadTimeout:
             st.error("Timeout: Server AI terlalu sibuk. Silakan coba lagi nanti.")
@@ -155,7 +155,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
         # Membuat format list titik-titik persis seperti pada gambar
         items = [
-            ("Nama Sekolah", f": ............................."),
+            ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
             ("Nama Penyusun", f": ............................."),
             ("Mata Pelajaran", f": {school_data['mapel']}"),
             ("Kelas / Fase / Semester", f": {school_data['kelas']} / D / Ganjil"),
