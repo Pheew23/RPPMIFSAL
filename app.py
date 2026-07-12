@@ -89,7 +89,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
     }
     try:
-        with st.status(f"❤️ Lagos AI Sedang Merakit Lembar Asesmen/Soal...", expanded=True) as status:
+        with st.status(f"❤️ Lagos AI Sedang Merakit Lembar Konten...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
                 status.update(label="✅ Perumusan Selesai!", state="complete", expanded=False)
@@ -130,14 +130,14 @@ def create_word_doc_kbc(content, doc_type, school_data):
         # 1. JUDUL DOKUMEN / KOP SOAL DINAMIS
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        set_font_safe(p_title.add_run(f"{doc_type.upper()} DEEP LEARNING (KBC)\n"), size=14, bold=True)
+        set_font_safe(p_title.add_run(f"{doc_type.upper()}\n"), size=14, bold=True)
         set_font_safe(p_title.add_run(f"MATA PELAJARAN : {school_data['mapel'].upper()}\n"), size=14, bold=True)
         set_font_safe(p_title.add_run(f"MATERI: {school_data['materi'].upper()}\n"), size=14, bold=True)
         
         doc.add_paragraph()
         
         # 2. LEMBAR IDENTITAS PESERTA / DOKUMEN
-        set_font_safe(doc.add_paragraph().add_run("LEMBAR ASESMEN / DOKUMEN"), size=12, bold=True)
+        set_font_safe(doc.add_paragraph().add_run("A. IDENTITAS DOKUMEN"), size=12, bold=True)
 
         items = [
             ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
@@ -267,6 +267,7 @@ tab_setup, tab_materi, tab_soal = st.tabs([
     "📝 Langkah 3: Modul Bank Soal"
 ])
 
+# INTI FIX ELEMEN: Deklarasi variabel ditaruh global di luar ekspander agar terdefinisi sempurna
 with tab_setup:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
     st.subheader("Informasi Instansi & Guru")
@@ -278,6 +279,7 @@ with tab_setup:
         alamat = st.text_area("Alamat Lengkap", "Jl. Rimba Mulya II No.46, Pasirmulya, Bogor Barat", height=68)
     with col2:
         nama_guru = st.text_input("Nama Lengkap Guru (Penyusun)", "Guru Pengajar")
+        nip_guru = st.text_input("NIP Guru", "-")
         kepala_madrasah = st.text_input("Nama Kepala Madrasah", "Drs. Andi Supriadi")
         nip_kepala = st.text_input("NIP Kepala", "-")
         kota = st.text_input("Kota Pembuatan Dokumen", "Bogor")
@@ -330,10 +332,10 @@ with st.sidebar:
     st.markdown("Pilih tab di halaman tengah untuk menentukan tipe file output berkas Anda.")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
 
-# --- KOREKSI UTAMA DI PROSES EKSEKUSI ---
+# --- PROSES EKSEKUSI TAB 2: PERANGKAT MENGAJAR ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
-        st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 and Materi pada Langkah 2.")
+        st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
     else:
         data = {
             "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
@@ -350,18 +352,18 @@ if btn_materi:
             if buffer:
                 show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", data)
 
+# --- PROSES EKSEKUSI TAB 3: LEMBAR SOAL DENGAN MENGIRIM DATA LENGKAP ---
 if btn_soal:
     if not nama_madrasah or not materi_soal:
         st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
     else:
-        # DI SINI DIPERBAIKI: nama_guru dan nip_guru sudah ikut dibungkus ke dalam data soal
         data = {
             "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
             "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, 
             "nama_guru": nama_guru, "nip_guru": nip_guru, 
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_soal, "kelas": kelas_soal, "tahun_ajaran": tahun_ajaran_soal, 
-            "materi": materi_soal, "tingkat_kesulitan": kesulitan_soal, "doc_type": doc_type_soal
+            "materi": materi_soal, "tingkat_kesulitan": kesulitan_soal
         }
         
         sys_prompt = """
