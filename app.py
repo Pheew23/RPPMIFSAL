@@ -92,7 +92,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         with st.status(f"❤️ Lagos AI Sedang Merakit Lembar Asesmen/Soal...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
-                status.update(label="✅ Perumusan Soal Selesai!", state="complete", expanded=False)
+                status.update(label="✅ Perumusan Selesai!", state="complete", expanded=False)
                 return response.json()['choices'][0]['message']['content']
             else:
                 status.update(label="❌ Gagal Terhubung ke AI", state="error")
@@ -147,7 +147,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
             ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
         ]
 
-        if "tingkat_kesulitan" in school_data:  # Ciri khas untuk Lembar Ujian/Soal
+        if "tingkat_kesulitan" in school_data:
             items.append(("Tingkat Kesulitan", f": {school_data['tingkat_kesulitan']}"))
 
         for label, value in items:
@@ -260,7 +260,7 @@ with c_logo:
 
 st.divider()
 
-# PENAMBAHAN SISTEM TIGA TAB (TERMASUK BANK SOAL)
+# TIGA TAB UTAMA
 tab_setup, tab_materi, tab_soal = st.tabs([
     "🏛️ Langkah 1: Profil Lembaga", 
     "📚 Langkah 2: Modul Pembelajaran", 
@@ -298,7 +298,6 @@ with tab_materi:
     btn_materi = st.button("🚀 GENERASIKAN MODUL PERANGKAT", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- NEW: INPUT TENTANG DOKUMEN PEMBUATAN SOAL TERPISAH ---
 with tab_soal:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
     st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian")
@@ -331,14 +330,14 @@ with st.sidebar:
     st.markdown("Pilih tab di halaman tengah untuk menentukan tipe file output berkas Anda.")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
 
-# --- PROSES EKSEKUSI TAB 2: MODUL AJAR ---
+# --- KOREKSI UTAMA DI PROSES EKSEKUSI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
-        st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
+        st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 and Materi pada Langkah 2.")
     else:
         data = {
             "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
-            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, 
+            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, "nip_guru": nip_guru,
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
@@ -351,17 +350,18 @@ if btn_materi:
             if buffer:
                 show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", data)
 
-# --- PROSES EKSEKUSI TAB 3: ASESMEN/SOAL (FITUR BARU) ---
 if btn_soal:
     if not nama_madrasah or not materi_soal:
         st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
     else:
+        # DI SINI DIPERBAIKI: nama_guru dan nip_guru sudah ikut dibungkus ke dalam data soal
         data = {
             "nama_madrasah": nama_madrasah, "jenis": jenis, "kabupaten": kabupaten, "alamat": alamat, 
-            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, "nama_guru": nama_guru, 
+            "kepala_madrasah": kepala_madrasah, "nip_kepala": nip_kepala, 
+            "nama_guru": nama_guru, "nip_guru": nip_guru, 
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_soal, "kelas": kelas_soal, "tahun_ajaran": tahun_ajaran_soal, 
-            "materi": materi_soal, "tingkat_kesulitan": kesulitan_soal
+            "materi": materi_soal, "tingkat_kesulitan": kesulitan_soal, "doc_type": doc_type_soal
         }
         
         sys_prompt = """
