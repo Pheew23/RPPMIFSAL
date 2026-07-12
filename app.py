@@ -135,7 +135,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # Baris 1: MODUL AJAR DEEP LEARNING (KBC)
-        r_t1 = p_title.add_run(f"{school_data['Jenis Dokumen', ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"].upper()}\n")
+        r_t1 = p_title.add_run(f"{doc_type.upper()} DEEP LEARNING (KBC)\n")
         set_font_safe(r_t1, size=14, bold=True)
         
         # Baris 2: MATA PELAJARAN : [MAPEL]
