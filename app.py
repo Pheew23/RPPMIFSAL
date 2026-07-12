@@ -44,24 +44,34 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
-    /* DI SINI ADALAH PERUBAHAN TOMBOL PRESET TERBARU YANG LEBIH BESAR & FULL WIDTH */
+    /* 1. Mengubah Tombol Eksekusi di Bawah Konten */
     div.stButton > button:first-child {
         background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%);
         color: white;
         border: none;
-        padding: 18px 36px;          /* Jarak padding vertikal dan horizontal diperbesar */
-        border-radius: 12px;         /* Sudut melengkung tombol premium */
-        font-size: 1.2rem;           /* Teks huruf tombol diperbesar */
-        font-weight: 700;            /* Menjadikan ketebalan teks menjadi Bold */
-        letter-spacing: 1px;         /* Memberikan jarak renggang tipis antar huruf */
+        padding: 18px 36px;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        letter-spacing: 1px;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         box-shadow: 0 6px 20px rgba(255, 75, 75, 0.3);
-        width: 100%;                 /* Membuat tombol melebar penuh mengikuti kontainer */
+        width: 100%;
     }
     
     div.stButton > button:first-child:hover {
-        transform: translateY(-3px); /* Efek melayang responsif yang lebih terasa */
+        transform: translateY(-3px);
         box-shadow: 0 8px 25px rgba(255, 75, 75, 0.5);
+    }
+
+    /* 2. FIX UTAMA: MEMPERBESAR TEKS TAB LANGKAH DI ATAS */
+    div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
+        font-size: 1.3rem !important;  /* Ukuran huruf tab diperbesar */
+        font-weight: 700 !important;   /* Teks tab dibuat tebal (Bold) */
+    }
+    
+    div[data-testid="stTabs"] button {
+        padding: 10px 20px !important; /* Memberikan spasi agar tab lebih proporsional */
     }
 
     .p-badge {
@@ -76,7 +86,6 @@ st.markdown("""
     }
     </style>
     """, unsafe_allow_html=True)
-
 # Konstanta API
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
