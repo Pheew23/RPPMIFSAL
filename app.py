@@ -413,7 +413,6 @@ with st.sidebar:
     
     # Injeksi Teks Informasi sesuai permintaan agar tersampaikan ke user
     st.divider()
-  st.markdown("### 🔍 Info Kurikulum KBC")
     st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
     st.markdown("""
     - 💖 Cinta kepada Allah & Rasul
@@ -421,7 +420,7 @@ with st.sidebar:
     - 🧘 Cinta kepada Diri Sendiri
     - 🤝 Cinta kepada Sesama
     - 🌿 Cinta kepada Lingkungan
-
+""")
 # --- PROSES EKSEKUSI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
