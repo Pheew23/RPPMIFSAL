@@ -330,8 +330,8 @@ lottie_heart = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_v9t
 
 c_title, c_logo = st.columns([0.85, 0.15])
 with c_title:
-    st.title("Workspace KBC 2026 ❤️")
-    st.caption("Aplikasi Administrasi Lembaga & Bank Soal Otomatis Tingkat Lanjut")
+    st.title("MI MIFTAHUSSALAM Generated Document ❤️")
+    st.caption("Aplikasi Administrasi Lembaga & Bank Soal Otomatis Based Lagos AI 9.1")
 with c_logo:
     if lottie_heart: st_lottie(lottie_heart, height=80, key="main_heart")
 
@@ -480,4 +480,4 @@ if btn_soal:
         if content:
             buffer = create_word_soal_kbc(content, doc_type_soal, data)
             if buffer:
-                show_download_popup(buffer, f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx", "Lembar ujian Anda telah diformat menggunakan layout Dual Kolom Kertas Resmi (Tanpa Kolom Tanda Tangan).")
+                show_download_popup(buffer, f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx", "Pekerjaan saya hanya bisa sampai sini, sisanya edit sendiri ya.")
