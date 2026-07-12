@@ -413,11 +413,14 @@ with st.sidebar:
     
     # Injeksi Teks Informasi sesuai permintaan agar tersampaikan ke user
     st.divider()
-    st.info("""
-    💡 **Informasi Layout Kerja:**
-    * **Langkah 2 (Modul Ajar):** Menggunakan format standar dinas asli (1 Kolom + Lembar Tanda Tangan).
-    * **Langkah 3 (Bank Soal):** Menggunakan format Lembar Ujian Kustom (2 Kolom Rapi + Kolom Isian Siswa Manual + Tanpa Tanda Tangan).
-    """)
+  st.markdown("### 🔍 Info Kurikulum KBC")
+    st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
+    st.markdown("""
+    - 💖 Cinta kepada Allah & Rasul
+    - 📚 Cinta kepada Ilmu
+    - 🧘 Cinta kepada Diri Sendiri
+    - 🤝 Cinta kepada Sesama
+    - 🌿 Cinta kepada Lingkungan
 
 # --- PROSES EKSEKUSI ---
 if btn_materi:
