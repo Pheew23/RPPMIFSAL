@@ -156,11 +156,11 @@ def create_word_doc_kbc(content, doc_type, school_data):
         # Membuat format list titik-titik persis seperti pada gambar
         items = [
             ("Nama Sekolah", f": {school_data['nama_madrasah']}"),
-            ("Nama Penyusun", f": ............................."),
+            ("Nama Penyusun", f": {school_data['nama_penyusun']}"),
             ("Mata Pelajaran", f": {school_data['mapel']}"),
             ("Kelas / Fase / Semester", f": {school_data['kelas']} / D / Ganjil"),
             ("Alasi Waktu / JP", f": 8 JP (4 kali pertemuan @ 2 JP)"),
-            ("Tahun Pelajaran", f": 20... / 20...")
+            ("Tahun Pelajaran", f": {school_data['tahun_ajaran']}")
         ]
 
         for label, value in items:
