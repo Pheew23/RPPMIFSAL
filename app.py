@@ -3,11 +3,13 @@ import requests
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.section import WD_ORIENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from io import BytesIO
 import re
 import time
+import random
 
 # --- FUNGSI ANIMASI LOTTIE ---
 def load_lottieurl(url: str):
@@ -64,37 +66,35 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(255, 75, 75, 0.5);
     }
 
-/* 2. FIX UTAMA: MENGUBAH TAB MENJADI SHAPES TOMBOL KUSTOM YANG BESAR & TEBAL */
+    /* 2. FIX UTAMA: MENGUBAH TAB MENJADI SHAPES TOMBOL KUSTOM YANG BESAR & TEBAL */
     div[data-testid="stTabs"] button {
-        background-color: rgba(255, 255, 255, 0.05) !important; /* Latar belakang shape kotak dasar */
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;  /* Garis tepi shape */
-        border-radius: 30px !important;                          /* Sudut melengkung rounded pill shape */
-        padding: 12px 28px !important;                          /* Mempertebal area fisik shape kotak */
-        margin-right: 12px !important;                          /* Jarak antar shape menu */
+        background-color: rgba(255, 255, 255, 0.05) !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;  
+        border-radius: 30px !important;                          
+        padding: 12px 28px !important;                          
+        margin-right: 12px !important;                          
         transition: all 0.3s ease !important;
     }
     
-    /* Efek visual ketika kursor diarahkan ke menu shape */
     div[data-testid="stTabs"] button:hover {
         background-color: rgba(255, 75, 75, 0.1) !important;
         border-color: #FF7676 !important;
     }
     
-    /* Efek visual ketika tab menu sedang aktif dipilih (Terseleksi) */
     div[data-testid="stTabs"] button[aria-selected="true"] {
-        background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%) !important; /* Warna gradasi merah KBC */
+        background: linear-gradient(135deg, #FF4B4B 0%, #FF7676 100%) !important; 
         color: white !important;
         border: none !important;
         box-shadow: 0 4px 15px rgba(255, 75, 75, 0.3) !important;
     }
     
-    /* Memperbesar ukuran teks huruf di dalam shape */
     div[data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {
-        font-size: 1.25rem !important;  /* Huruf diperbesar signifikan */
-        font-weight: 700 !important;    /* Teks super tebal / Bold */
+        font-size: 1.25rem !important;  
+        font-weight: 700 !important;    
     }
     </style>
     """, unsafe_allow_html=True)
+
 # Konstanta API
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
@@ -151,13 +151,28 @@ def set_document_to_two_columns(section):
     cols.set(qn('w:space'), '500')  
     sectPr.append(cols)
 
+def set_section_to_landscape(section):
+    section.orientation = WD_ORIENT.LANDSCAPE
+    new_width, new_height = section.page_height, section.page_width
+    section.page_width = new_width
+    section.page_height = new_height
 
 # ==========================================
-# FORMAT 1: MODUL AJAR / RPP ASLI SEMULA (1 KOLOM + TTD KEPSEK)
+# FORMAT 1: MODUL AJAR / RPP / KBC MASTER (1 KOLOM + TTD KEPSEK)
 # ==========================================
 def create_word_doc_kbc(content, doc_type, school_data):
     try:
         doc = Document()
+        
+        # Atur halaman ke Landscape jika tipe dokumennya Prota atau Promes
+        if doc_type in ["Prota", "Promes"]:
+            for section in doc.sections:
+                set_section_to_landscape(section)
+                section.top_margin = Inches(0.7)
+                section.bottom_margin = Inches(0.7)
+                section.left_margin = Inches(0.7)
+                section.right_margin = Inches(0.7)
+
         style = doc.styles['Normal']
         style.font.name = 'Times New Roman'
         style.font.size = Pt(12)
@@ -177,7 +192,8 @@ def create_word_doc_kbc(content, doc_type, school_data):
         set_font_safe(p3.add_run(f"Alamat: {school_data['alamat']} | Telp: {school_data['telp']}"), size=10)
 
         p_line = doc.add_paragraph()
-        set_font_safe(p_line.add_run("_" * 70), size=10)
+        p_line.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        set_font_safe(p_line.add_run("_" * (100 if doc_type in ["Prota", "Promes"] else 70)), size=10)
 
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -216,7 +232,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
                                     if c_idx < len(row.cells):
                                         row.cells[c_idx].text = cell_text
                                         for p in row.cells[c_idx].paragraphs:
-                                            for run in p.runs: set_font_safe(run, size=11, bold=(r_idx==0))
+                                            for run in p.runs: set_font_safe(run, size=10 if doc_type in ["Prota", "Promes"] else 11, bold=(r_idx==0))
                         except: pass
                         table_buffer = []
                         in_table_mode = False
@@ -254,7 +270,6 @@ def create_word_doc_kbc(content, doc_type, school_data):
     except Exception as e:
         st.error(f"Error Pembuatan Modul Ajar: {e}")
         return None
-
 
 # ==========================================
 # FORMAT 2: KHUSUS SOAL UJIAN REVISI (DUAL KOLOM + TANPA TTD)
@@ -330,14 +345,20 @@ def create_word_soal_kbc(content, doc_type, school_data):
         st.error(f"Error Pembuatan Soal Word: {e}")
         return None
 
-
-# --- DIALOG POP-UP DOKUMEN ---
+# --- DIALOG POP-UP DOKUMEN DENGAN QUOTES DI NAMI S---
 @st.dialog("📥 Berkas Anda Telah Siap!")
-def show_download_popup(buffer, filename, quotes):
+def show_download_popup(buffer, filename, fallback_msg):
     st.write(f"### 🎉 Berkas Selesai!")
     
-    # Menampilkan quotes dari AI dengan format blockquote yang estetik
-    st.markdown(f"> *\"{quotes}\"*") 
+    # Kumpulan Quotes KBC yang dipanggil secara acak tiap kali pop-up dirender
+    kbc_quotes = [
+        "Mengajar dengan hati, mendidik dengan kompas Pancacinta.",
+        "Deep Learning sejati mekar di dalam ruang kelas yang dipenuhi dengan rasa aman dan kasih sayang.",
+        "Kurikulum Merdeka memberikan kebebasan berpikir, Kurikulum Berbasis Cinta memberikan kehangatan jiwa.",
+        "Mendidik pikiran tanpa mendidik hati dengan cinta adalah hal yang sia-sia.",
+        "Jadikan setiap lembar administrasi hari ini sebagai jalan kebaikan untuk tumbuh kembang anak didik kita."
+    ]
+    st.markdown(f"> *\"{random.choice(kbc_quotes)}\"*")
     
     st.divider()
     st.download_button(
@@ -435,7 +456,6 @@ with st.sidebar:
     st.header("📋 Kontrol Administrasi")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
     
-    # Injeksi Teks Informasi sesuai permintaan agar tersampaikan ke user
     st.divider()
     st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
     st.markdown("""
@@ -445,7 +465,8 @@ with st.sidebar:
     - 🤝 Cinta kepada Sesama
     - 🌿 Cinta kepada Lingkungan
 """)
-# --- INISIALISASI SESSION STATE (Taruh di bagian atas proses eksekusi) ---
+
+# --- INISIALISASI SESSION STATE ---
 if "buffer_materi" not in st.session_state:
     st.session_state.buffer_materi = None
 if "filename_materi" not in st.session_state:
@@ -456,13 +477,12 @@ if "buffer_soal" not in st.session_state:
 if "filename_soal" not in st.session_state:
     st.session_state.filename_soal = ""
 
-# --- FLAG UNTUK MENANDAI APAKAH DIALOG HARUS DIBUKA ---
 if "buka_popup_materi" not in st.session_state:
     st.session_state.buka_popup_materi = False
 if "buka_popup_soal" not in st.session_state:
     st.session_state.buka_popup_soal = False
 
-# --- PROSES EKSEKUSI: TAB MATERI ---
+# --- PROSES EKSEKUSI: TAB MATERI (DENGAN STRUKTUR PROMPT BERBEDA PER BERKAS) ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
@@ -473,26 +493,65 @@ if btn_materi:
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
-        sys_prompt = (
-            "Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
-            "Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC). Tugas Anda adalah menyusun dokumen administrasi secara lengkap dan bisa langsung di terapkan/digunakan "
-            "guru formal yang mengintegrasikan prinsip Kurikulum Merdeka (Capaian Pembelajaran, Alur Tujuan Pembelajaran) "
-            "dengan poin-poin utama deep learning (core principles) Meaningful Learning (Pembelajaran Bermakna), Mindful Learning (Pembelajaran Sadar dan Utuh), Joyful Learning (Pembelajaran yang Menyenangkan), Pancacinta sebagai Kompas Karakter, joyful Assessment (Asesmen yang Memotivasi)."
-            "dengan 5 Pilar Utama KBC 2026 (Cinta kepada Allah & Rasul, Ilmu, Diri Sendiri, Sesama, Lingkungan). "
-            "Gunakan format Markdown murni. Langsung isi inti dokumen dengan bahasa akademis dan penuh empati."
-        )
-        user_prompt = f"""
-        Buatkan dokumen perangkat {doc_type_materi} untuk mata pelajaran {mapel_materi} kelas {kelas_materi} 
-        berdasarkan Kurikulum Merdeka dan pendekatan Deep Learning Berbasis Cinta (KBC) 2026.
-        Topik/Bab Pembelajaran: {materi_pembelajaran}.
         
-        Wajib sertakan komponen:
-        1. Tujuan Pembelajaran (berorientasi Deep Learning & Karakter KBC).
-        2. Untuk RPP dan Modul Ajar Berisi A. Identitas modul, B. Identifikasi Kesiapan Peserta Didik, C. Tema Kurikulum berbasis cinta dan deep learning, D. Karakteristik Materi Pelajaran, E. Dimensi Profile Lulusan, dan lanjutkan sesuai format RPP Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC).
-        2. Langkah-Langkah Kegiatan Pembelajaran (dalam bentuk tabel langkah kegiatan yang memuat pendahuluan, inti, penutup dengan pendekatan KBC).
-        3. Rencana Asesmen/Penilaian.
-        4. hanya Untuk Prota / Promes buat dalam bentuk Landscape docx masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatan programnya.
-        5. Promes buatkan semester ganjil dan genap.
+        # LOGIKA PERBEDAAN FORMAT SECARA KETAT BERDASARKAN PARAMETER PILIHAN
+        if doc_type_materi in ["Modul Ajar", "RPP"]:
+            spesifikasi_format = (
+                "Format Wajib RPP/Modul Ajar:\n"
+                "Sertakan komponen formal terstruktur: A. Identitas Modul, B. Identifikasi Kesiapan Peserta Didik, "
+                "C. Tema Kurikulum Berbasis Cinta dan Deep Learning, D. Karakteristik Materi Pelajaran, "
+                "E. Dimensi Profil Pelajar Pancasila / Lulusan.\n"
+                "Serta wajib melampirkan tabel detail langkah-langkah kegiatan pembelajaran harian (Pendahuluan, Inti, Penutup berbasis KBC) "
+                "dan Rencana Asesmen/Penilaian yang valid."
+            )
+        elif doc_type_materi == "CP":
+            spesifikasi_format = (
+                "Format Wajib Capaian Pembelajaran (CP):\n"
+                "Jangan buat tabel timeline mingguan, RPP, atau kegiatan mengajar harian!\n"
+                "Fokus pada perumusan rasionalisasi mata pelajaran, target kompetensi esensial makro siswa, "
+                "serta pembagian Elemen CP Kurikulum Merdeka yang dikawinkan dengan 5 Pilar Utama KBC 2026."
+            )
+        elif doc_type_materi == "ATP":
+            spesifikasi_format = (
+                "Format Wajib Alur Tujuan Pembelajaran (ATP):\n"
+                "Buat dalam bentuk tabel matriks pemetaan dengan kolom: [No] | [Elemen CP] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu/JP] | [Aspek Karakter KBC].\n"
+                "Tunjukkan alur logis pengajaran kompetensi dari yang paling mendasar menuju ke tahapan deep learning."
+            )
+        elif doc_type_materi == "Prota":
+            spesifikasi_format = (
+                "Format Wajib Program Tahunan (Prota) - ORIENTASI LANDSCAPE:\n"
+                "Buatlah pemetaan satu tahun penuh dalam bentuk matriks tabel horizontal. Kolom wajib: [No] | [Semester] | [Capaian Pembelajaran (CP) & Elemen] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu Makro (JP)].\n"
+                "Distribusikan bab/topik pembelajaran secara menyeluruh untuk Semester Ganjil dan Genap."
+            )
+        elif doc_type_materi == "Promes":
+            spesifikasi_format = (
+                "Format Wajib Program Semester (Promes) - ORIENTASI LANDSCAPE:\n"
+                "Buatlah tabel waktu bulanan yang sangat spesifik untuk Semester Ganjil DAN Semester Genap.\n"
+                "Tabel wajib memiliki kolom: [No] | [Capaian Pembelajaran (CP) / Elemen] | [Alur & Tujuan Pembelajaran (ATP)] | [Alokasi JP] | [Juli] | [Agustus] | [September] | [Oktober] | [November] | [Desember] | [Januari] | [Februari] | [Maret] | [April] | [Mei] | [Juni].\n"
+                "Isi bagian kolom bulan dengan tanda blok atau centang penanda alokasi minggu pengajaran secara rapi."
+            )
+        else:  # LKPD
+            spesifikasi_format = (
+                "Format Wajib LKPD KBC:\n"
+                "Buatlah lembar kerja aktivitas interaktif untuk dikerjakan murid. Isinya meliputi Judul Aktivitas, Petunjuk Belajar, "
+                "Pertanyaan Pemantik Deep Learning, Studi Kasus/Problem Solving berbasis empati, serta Lembar Refleksi Perasaan Murid."
+            )
+
+        sys_prompt = (
+            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
+            f"Deep Learning (Meaningful, Mindful, Joyful Learning) dan Kurikulum Berbasis Cinta (KBC) 2026.\n"
+            f"Tugas utama Anda adalah menyusun dokumen administrasi guru berjenis formal: {doc_type_materi}.\n"
+            f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
+            f"{spesifikasi_format}\n"
+            f"Gunakan format Markdown murni yang rapi. Tuliskan isi dokumen dengan bahasa akademis dan penuh empati."
+        )
+        
+        user_prompt = f"""
+        Rancangkan secara komprehensif dokumen perangkat administrasi mengajar jenis: **{doc_type_materi}**
+        Mata Pelajaran: {mapel_materi}, Kelas/Fase: {kelas_materi}, Tahun Ajaran: {tahun_ajaran_materi}.
+        Topik/Bab Pembelajaran Utama: {materi_pembelajaran}.
+        
+        Pastikan output Anda berfokus penuh pada format struktur {doc_type_materi} yang diminta tanpa keluar dari instruksi khusus di atas!
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
@@ -552,9 +611,9 @@ if btn_soal:
 
 # --- LOGIKA PEMANGGILAN POPUP SETELAH RERUN AGAR DIJAMIN MUNCUL ---
 if st.session_state.buka_popup_materi:
-    st.session_state.buka_popup_materi = False  # Reset flag
+    st.session_state.buka_popup_materi = False  
     show_download_popup(st.session_state.buffer_materi, st.session_state.filename_materi, "Pekerjaan Saya Selesai, ada lagi yang bisa di bantu?.")
 
 if st.session_state.buka_popup_soal:
-    st.session_state.buka_popup_soal = False  # Reset flag
+    st.session_state.buka_popup_soal = False  
     show_download_popup(st.session_state.buffer_soal, st.session_state.filename_soal, "Pekerjaan saya hanya bisa sampai sini, sisanya edit sendiri ya.")
