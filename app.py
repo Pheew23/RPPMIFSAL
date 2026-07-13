@@ -352,11 +352,11 @@ def show_download_popup(buffer, filename, fallback_msg):
     
     # Kumpulan Quotes KBC yang dipanggil secara acak tiap kali pop-up dirender
     kbc_quotes = [
-        "Mengajar dengan hati, mendidik dengan kompas Pancacinta.",
-        "Deep Learning sejati mekar di dalam ruang kelas yang dipenuhi dengan rasa aman dan kasih sayang.",
-        "Kurikulum Merdeka memberikan kebebasan berpikir, Kurikulum Berbasis Cinta memberikan kehangatan jiwa.",
-        "Mendidik pikiran tanpa mendidik hati dengan cinta adalah hal yang sia-sia.",
-        "Jadikan setiap lembar administrasi hari ini sebagai jalan kebaikan untuk tumbuh kembang anak didik kita."
+        "Kita semua baik-baik saja, sampai hidup menarik orang lain untuk mulai ambil suara.",
+        "Mengajari hati untuk bersyukur adalah tugas seumur hidup yang tidak akan pernah selesai kita pelajari. Namun peluk juga rasa sedihmu tanpa rasa bersalah. Menjadi manusia bukan tentang memilih satu di antara keduanya.",
+        "Rasa sedih benci objek yang terus bergerak",
+        "Hati manusia itu terbatas, pilih emosi mana yang layak kamu jaga.",
+        "Dunia bakal tetap bergerak, tanpa peduli berapa banyak jam tidur yang kamu punya."
     ]
     st.markdown(f"> *\"{random.choice(kbc_quotes)}\"*")
     
