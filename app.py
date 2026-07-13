@@ -476,7 +476,15 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                show_download_popup(buffer, f"KBC2026_{doc_type_materi}_{mapel_materi}.docx", "Pekerjaan Saya Selesai, ada lagi yang bisa di bantu?.")
+                # SOLUSI STABIL: Tampilkan langsung di halaman utama jika dialog bermasalah
+                st.success("🎉 Berkas Modul Perangkat Berhasil Dirumuskan!")
+                st.download_button(
+                    label="📥 UNDUH MODUL PERANGKAT SEKARANG",
+                    data=buffer,
+                    file_name=f"KBC2026_{doc_type_materi}_{mapel_materi}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
 
 if btn_soal:
     if not nama_madrasah or not materi_soal:
@@ -518,4 +526,12 @@ if btn_soal:
         if content:
             buffer = create_word_soal_kbc(content, doc_type_soal, data)
             if buffer:
-                show_download_popup(buffer, f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx", "Pekerjaan saya hanya bisa sampai sini, sisanya edit sendiri ya.")
+                # SOLUSI STABIL: Tampilkan langsung di halaman utama jika dialog bermasalah
+                st.success("🎉 Berkas Lembar Bank Soal Berhasil Dirumuskan!")
+                st.download_button(
+                    label="📥 UNDUH LEMBAR BANK SOAL SEKARANG",
+                    data=buffer,
+                    file_name=f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx",
+                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    use_container_width=True
+                )
