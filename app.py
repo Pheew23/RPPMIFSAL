@@ -342,6 +342,7 @@ def show_download_popup(buffer, filename, msg):
         label="📥 UNDUH SEKARANG",
         data=buffer,
         file_name=filename,
+        file_name=filename,
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         use_container_width=True
     )
@@ -454,8 +455,23 @@ if btn_materi:
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
-        sys_prompt = "Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
-        user_prompt = f"Buat dokumen {doc_type_materi} pelajaran {mapel_materi} kelas {kelas_materi} topik: {materi_pembelajaran}. Sertakan tabel langkah kegiatan."
+        sys_prompt = (
+            "Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
+            "Deep Learning Berbasis Cinta (KBC) Tahun 2026. Tugas Anda adalah menyusun dokumen administrasi "
+            "guru formal yang mengintegrasikan prinsip Kurikulum Merdeka (Capaian Pembelajaran, Alur Tujuan Pembelajaran) "
+            "dengan 5 Pilar Utama KBC 2026 (Cinta kepada Allah & Rasul, Ilmu, Diri Sendiri, Sesama, Lingkungan). "
+            "Gunakan format Markdown murni. Langsung isi inti dokumen dengan bahasa akademis dan penuh empati."
+        )
+        user_prompt = f"""
+        Buatkan dokumen perangkat {doc_type_materi} untuk mata pelajaran {mapel_materi} kelas {kelas_materi} 
+        berdasarkan Kurikulum Merdeka dan pendekatan Deep Learning Berbasis Cinta (KBC) 2026.
+        Topik/Bab Pembelajaran: {materi_pembelajaran}.
+        
+        Wajib sertakan komponen:
+        1. Tujuan Pembelajaran (berorientasi Deep Learning & Karakter KBC).
+        2. Langkah-Langkah Kegiatan Pembelajaran (dalam bentuk tabel langkah kegiatan yang memuat pendahuluan, inti, penutup dengan pendekatan KBC).
+        3. Rencana Asesmen/Penilaian.
+        """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
         if content:
@@ -477,8 +493,9 @@ if btn_soal:
         }
         
         sys_prompt = """
-        Anda adalah Ahli Evaluasi Akademik Kurikulum Berbasis Cinta (KBC) 2026.
-        Tugas Anda adalah memproduksi naskah lembar ujian/soal yang siap dikerjakan siswa.
+        Anda adalah Ahli Evaluasi Akademik Kurikulum Merdeka dengan pendekatan Deep Learning Berbasis Cinta (KBC) 2026.
+        Tugas Anda adalah memproduksi naskah lembar ujian/soal asesmen bertema Kurikulum Merdeka yang siap dikerjakan siswa. 
+        Pastikan stimulus soal kontekstual, bermakna, menumbuhkan pemikiran mendalam (deep learning), dan menyentuh nilai-nilai karakter KBC 2026.
         Format Output Harus Terstruktur Menggunakan Penomoran Rapi:
         - BAGIAN I: SOAL PILIHAN GANDA (berikan opsi A, B, C, D)
         - BAGIAN II: SOAL ISIAN SINGKAT
@@ -488,7 +505,7 @@ if btn_soal:
         """
         
         user_prompt = f"""
-        Buatkan naskah soal ujian {doc_type_soal} untuk Mata Pelajaran {mapel_soal}, {kelas_soal}.
+        Buatkan naskah soal ujian {doc_type_soal} untuk Mata Pelajaran {mapel_soal}, {kelas_soal} berdasarkan standar Kurikulum Merdeka KBC 2026.
         Materi Pokok Bahasan: {materi_soal}.
         Tingkat Kesulitan Soal: {kesulitan_soal}.
         Komposisi Soal Yang Harus Dibuat:
