@@ -454,7 +454,7 @@ if btn_materi:
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
-        sys_prompt = "Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
+        sys_prompt = " Anda adalah Ahli Evaluasi Akademik Kurikulum merdeka pendekatan deep learning dan Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
         user_prompt = f"Buat dokumen {doc_type_materi} pelajaran {mapel_materi} kelas {kelas_materi} topik: {materi_pembelajaran}. Sertakan tabel langkah kegiatan."
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
