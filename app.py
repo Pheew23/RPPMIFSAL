@@ -457,6 +457,11 @@ with st.sidebar:
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
     
     st.divider()
+    st.write("Deeplearning:")
+    st.markdown("""
+    - Mindful
+    - Meaningful
+    - Joyful
     st.write("Kurikulum Berbasis Cinta menekankan 5 Pilar Utama:")
     st.markdown("""
     - 💖 Cinta kepada Allah & Rasul
