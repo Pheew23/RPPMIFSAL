@@ -477,7 +477,7 @@ if btn_soal:
         }
         
         sys_prompt = """
-        Anda adalah Ahli Evaluasi Akademik Kurikulum Berbasis Cinta (KBC) 2026.
+        Anda adalah Ahli Evaluasi Akademik Kurikulum merdeka pendekatan deep learning dan Kurikulum Berbasis Cinta (KBC) 2026.
         Tugas Anda adalah memproduksi naskah lembar ujian/soal yang siap dikerjakan siswa.
         Format Output Harus Terstruktur Menggunakan Penomoran Rapi:
         - BAGIAN I: SOAL PILIHAN GANDA (berikan opsi A, B, C, D)
