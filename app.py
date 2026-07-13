@@ -334,14 +334,13 @@ def create_word_soal_kbc(content, doc_type, school_data):
 # --- DIALOG POP-UP DOKUMEN ---
 @st.dialog("📥 Berkas Anda Telah Siap!")
 def show_download_popup(buffer, filename, msg):
-    st.markdown('<div class="p-badge">Status: Sukses</div>', unsafe_allow_html=True)
     st.write(f"### 🎉 Berkas Selesai!")
     st.write(msg)
     st.divider()
     st.download_button(
         label="📥 UNDUH SEKARANG",
         data=buffer,
-        file_name=filename, # Hapus baris duplikat yang ada di bawah ini
+        file_name=filename,
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         use_container_width=True
     )
@@ -454,6 +453,12 @@ if "buffer_soal" not in st.session_state:
 if "filename_soal" not in st.session_state:
     st.session_state.filename_soal = ""
 
+# --- FLAG UNTUK MENANDAI APAKAH DIALOG HARUS DIBUKA ---
+if "buka_popup_materi" not in st.session_state:
+    st.session_state.buka_popup_materi = False
+if "buka_popup_soal" not in st.session_state:
+    st.session_state.buka_popup_soal = False
+
 # --- PROSES EKSEKUSI: TAB MATERI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
@@ -488,22 +493,10 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                # Simpan hasil ke dalam session state agar tidak hilang saat rerun
                 st.session_state.buffer_materi = buffer
                 st.session_state.filename_materi = f"KBC2026_{doc_type_materi}_{mapel_materi}.docx"
-
-# --- TAMPILKAN TOMBOL UNDUH MATERI JIKA DATA SUDAH ADA ---
-if st.session_state.buffer_materi is not None:
-    st.success("🎉 Berkas Modul Perangkat KBC 2026 Berhasil Dirumuskan!")
-    st.download_button(
-        label="📥 UNDUH MODUL PERANGKAT SEKARANG",
-        data=st.session_state.buffer_materi,
-        file_name=st.session_state.filename_materi,
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        use_container_width=True,
-        key="download_btn_materi"
-    )
-
+                st.session_state.buka_popup_materi = True
+                st.rerun()
 
 # --- PROSES EKSEKUSI: TAB SOAL ---
 if btn_soal:
@@ -546,18 +539,16 @@ if btn_soal:
         if content:
             buffer = create_word_soal_kbc(content, doc_type_soal, data)
             if buffer:
-                # Simpan hasil ke dalam session state agar tidak hilang saat rerun
                 st.session_state.buffer_soal = buffer
                 st.session_state.filename_soal = f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx"
+                st.session_state.buka_popup_soal = True
+                st.rerun()
 
-# --- TAMPILKAN TOMBOL UNDUH SOAL JIKA DATA SUDAH ADA ---
-if st.session_state.buffer_soal is not None:
-    st.success("🎉 Berkas Lembar Bank Soal KBC 2026 Berhasil Dirumuskan!")
-    st.download_button(
-        label="📥 UNDUH LEMBAR BANK SOAL SEKARANG",
-        data=st.session_state.buffer_soal,
-        file_name=st.session_state.filename_soal,
-        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        use_container_width=True,
-        key="download_btn_soal"
-    )
+# --- LOGIKA PEMANGGILAN POPUP SETELAH RERUN AGAR DIJAMIN MUNCUL ---
+if st.session_state.buka_popup_materi:
+    st.session_state.buka_popup_materi = False  # Reset flag
+    show_download_popup(st.session_state.buffer_materi, st.session_state.filename_materi, "Pekerjaan Saya Selesai, ada lagi yang bisa di bantu?.")
+
+if st.session_state.buka_popup_soal:
+    st.session_state.buka_popup_soal = False  # Reset flag
+    show_download_popup(st.session_state.buffer_soal, st.session_state.filename_soal, "Pekerjaan saya hanya bisa sampai sini, sisanya edit sendiri ya.")
