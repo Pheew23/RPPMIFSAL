@@ -443,7 +443,18 @@ with st.sidebar:
     - 🤝 Cinta kepada Sesama
     - 🌿 Cinta kepada Lingkungan
 """)
-# --- PROSES EKSEKUSI ---
+# --- INISIALISASI SESSION STATE (Taruh di bagian atas proses eksekusi) ---
+if "buffer_materi" not in st.session_state:
+    st.session_state.buffer_materi = None
+if "filename_materi" not in st.session_state:
+    st.session_state.filename_materi = ""
+    
+if "buffer_soal" not in st.session_state:
+    st.session_state.buffer_soal = None
+if "filename_soal" not in st.session_state:
+    st.session_state.filename_soal = ""
+
+# --- PROSES EKSEKUSI: TAB MATERI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
@@ -476,16 +487,24 @@ if btn_materi:
         if content:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
-                # SOLUSI STABIL: Tampilkan langsung di halaman utama jika dialog bermasalah
-                st.success("🎉 Berkas Modul Perangkat Berhasil Dirumuskan!")
-                st.download_button(
-                    label="📥 UNDUH MODUL PERANGKAT SEKARANG",
-                    data=buffer,
-                    file_name=f"KBC2026_{doc_type_materi}_{mapel_materi}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+                # Simpan hasil ke dalam session state agar tidak hilang saat rerun
+                st.session_state.buffer_materi = buffer
+                st.session_state.filename_materi = f"KBC2026_{doc_type_materi}_{mapel_materi}.docx"
 
+# --- TAMPILKAN TOMBOL UNDUH MATERI JIKA DATA SUDAH ADA ---
+if st.session_state.buffer_materi is not None:
+    st.success("🎉 Berkas Modul Perangkat KBC 2026 Berhasil Dirumuskan!")
+    st.download_button(
+        label="📥 UNDUH MODUL PERANGKAT SEKARANG",
+        data=st.session_state.buffer_materi,
+        file_name=st.session_state.filename_materi,
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True,
+        key="download_btn_materi"
+    )
+
+
+# --- PROSES EKSEKUSI: TAB SOAL ---
 if btn_soal:
     if not nama_madrasah or not materi_soal:
         st.warning("⚠️ Harap lengkapi instansi pada Langkah 1 dan detail komposisi soal pada Langkah 3.")
@@ -526,12 +545,18 @@ if btn_soal:
         if content:
             buffer = create_word_soal_kbc(content, doc_type_soal, data)
             if buffer:
-                # SOLUSI STABIL: Tampilkan langsung di halaman utama jika dialog bermasalah
-                st.success("🎉 Berkas Lembar Bank Soal Berhasil Dirumuskan!")
-                st.download_button(
-                    label="📥 UNDUH LEMBAR BANK SOAL SEKARANG",
-                    data=buffer,
-                    file_name=f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx",
-                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                    use_container_width=True
-                )
+                # Simpan hasil ke dalam session state agar tidak hilang saat rerun
+                st.session_state.buffer_soal = buffer
+                st.session_state.filename_soal = f"Soal_{doc_type_soal.split(' ')[0]}_{mapel_soal}_{kelas_soal.replace(' ', '')}.docx"
+
+# --- TAMPILKAN TOMBOL UNDUH SOAL JIKA DATA SUDAH ADA ---
+if st.session_state.buffer_soal is not None:
+    st.success("🎉 Berkas Lembar Bank Soal KBC 2026 Berhasil Dirumuskan!")
+    st.download_button(
+        label="📥 UNDUH LEMBAR BANK SOAL SEKARANG",
+        data=st.session_state.buffer_soal,
+        file_name=st.session_state.filename_soal,
+        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        use_container_width=True,
+        key="download_btn_soal"
+    )
