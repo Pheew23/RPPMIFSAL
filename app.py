@@ -333,9 +333,12 @@ def create_word_soal_kbc(content, doc_type, school_data):
 
 # --- DIALOG POP-UP DOKUMEN ---
 @st.dialog("📥 Berkas Anda Telah Siap!")
-def show_download_popup(buffer, filename, msg):
+def show_download_popup(buffer, filename, quotes):
     st.write(f"### 🎉 Berkas Selesai!")
-    st.write(msg)
+    
+    # Menampilkan quotes dari AI dengan format blockquote yang estetik
+    st.markdown(f"> *\"{quotes}\"*") 
+    
     st.divider()
     st.download_button(
         label="📥 UNDUH SEKARANG",
