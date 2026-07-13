@@ -341,8 +341,7 @@ def show_download_popup(buffer, filename, msg):
     st.download_button(
         label="📥 UNDUH SEKARANG",
         data=buffer,
-        file_name=filename,
-        file_name=filename,
+        file_name=filename, # Hapus baris duplikat yang ada di bawah ini
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         use_container_width=True
     )
