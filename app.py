@@ -98,7 +98,7 @@ st.markdown("""
 # Konstanta API
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL_NAME = "qwen/qwen3.5-397b-a17b"
+MODEL_NAME = "stepfun-ai/step-3.7-flash"
 
 # --- LOGIKA CORE & HELPER ---
 def get_ai_response_kbc(prompt, system_instruction):
