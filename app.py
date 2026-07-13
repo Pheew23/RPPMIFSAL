@@ -475,7 +475,7 @@ if btn_materi:
         }
         sys_prompt = (
             "Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
-            "Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC). Tugas Anda adalah menyusun dokumen administrasi "
+            "Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC). Tugas Anda adalah menyusun dokumen administrasi secara lengkap dan bisa langsung di terapkan/digunakan "
             "guru formal yang mengintegrasikan prinsip Kurikulum Merdeka (Capaian Pembelajaran, Alur Tujuan Pembelajaran) "
             "dengan poin-poin utama deep learning (core principles) Meaningful Learning (Pembelajaran Bermakna), Mindful Learning (Pembelajaran Sadar dan Utuh), Joyful Learning (Pembelajaran yang Menyenangkan), Pancacinta sebagai Kompas Karakter, joyful Assessment (Asesmen yang Memotivasi)."
             "dengan 5 Pilar Utama KBC 2026 (Cinta kepada Allah & Rasul, Ilmu, Diri Sendiri, Sesama, Lingkungan). "
@@ -490,6 +490,7 @@ if btn_materi:
         1. Tujuan Pembelajaran (berorientasi Deep Learning & Karakter KBC).
         2. Langkah-Langkah Kegiatan Pembelajaran (dalam bentuk tabel langkah kegiatan yang memuat pendahuluan, inti, penutup dengan pendekatan KBC).
         3. Rencana Asesmen/Penilaian.
+        4. Untuk Promes dan Prota masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatab programnya.
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
