@@ -490,7 +490,8 @@ if btn_materi:
         1. Tujuan Pembelajaran (berorientasi Deep Learning & Karakter KBC).
         2. Langkah-Langkah Kegiatan Pembelajaran (dalam bentuk tabel langkah kegiatan yang memuat pendahuluan, inti, penutup dengan pendekatan KBC).
         3. Rencana Asesmen/Penilaian.
-        4. Untuk Promes dan Prota masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatab programnya.
+        4. hanya Untuk Prota / Promes (landscape docx) masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatan programnya.
+        5. Promes buatkan semester ganjil dan genap.
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
