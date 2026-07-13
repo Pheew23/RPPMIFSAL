@@ -109,7 +109,7 @@ def get_ai_response_kbc(prompt, system_instruction):
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
+        "temperature": 0.6, "top_p": 0.8, "max_tokens": 6096, "stream": False
     }
     try:
         with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
