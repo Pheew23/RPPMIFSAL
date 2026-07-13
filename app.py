@@ -467,8 +467,9 @@ if btn_materi:
         }
         sys_prompt = (
             "Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
-            "Deep Learning Berbasis Cinta (KBC) Tahun 2026. Tugas Anda adalah menyusun dokumen administrasi "
+            "Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC). Tugas Anda adalah menyusun dokumen administrasi "
             "guru formal yang mengintegrasikan prinsip Kurikulum Merdeka (Capaian Pembelajaran, Alur Tujuan Pembelajaran) "
+            "dengan poin-poin utama deep learning (core principles) Meaningful Learning (Pembelajaran Bermakna), Mindful Learning (Pembelajaran Sadar dan Utuh), Joyful Learning (Pembelajaran yang Menyenangkan), Pancacinta sebagai Kompas Karakter, joyful Assessment (Asesmen yang Memotivasi)."
             "dengan 5 Pilar Utama KBC 2026 (Cinta kepada Allah & Rasul, Ilmu, Diri Sendiri, Sesama, Lingkungan). "
             "Gunakan format Markdown murni. Langsung isi inti dokumen dengan bahasa akademis dan penuh empati."
         )
