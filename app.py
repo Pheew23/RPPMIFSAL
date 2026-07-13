@@ -488,9 +488,10 @@ if btn_materi:
         
         Wajib sertakan komponen:
         1. Tujuan Pembelajaran (berorientasi Deep Learning & Karakter KBC).
+        2. Untuk RPP dan Modul Ajar Berisi A. Identitas modul, B. Identifikasi Kesiapan Peserta Didik, C. Tema Kurikulum berbasis cinta dan deep learning, D. Karakteristik Materi Pelajaran, E. Dimensi Profile Lulusan, dan lanjutkan sesuai format RPP Kurikulum Merdeka dengan pendekatan deep learning (pembelajaran mendalam) dan Kurikulum Berbasis Cinta (KBC).
         2. Langkah-Langkah Kegiatan Pembelajaran (dalam bentuk tabel langkah kegiatan yang memuat pendahuluan, inti, penutup dengan pendekatan KBC).
         3. Rencana Asesmen/Penilaian.
-        4. hanya Untuk Prota / Promes (landscape docx) masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatan programnya.
+        4. hanya Untuk Prota / Promes buat dalam bentuk Landscape docx masukan CP dengan elemennya, dan buat alur dan tujuan pembelajaran serta alur waktu dan timeline bulanan kegiatan programnya.
         5. Promes buatkan semester ganjil dan genap.
         """
         
