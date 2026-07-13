@@ -98,7 +98,7 @@ st.markdown("""
 # Konstanta API
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL_NAME = "stepfun-ai/step-3.7-flash"
+MODEL_NAME = "qwen/qwen3.5-397b-a17b"
 
 # --- LOGIKA CORE & HELPER ---
 def get_ai_response_kbc(prompt, system_instruction):
@@ -454,7 +454,7 @@ if btn_materi:
             "kota": kota, "tanggal_buat": tanggal_buat.strftime("%d %B %Y"),
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
-        sys_prompt = " Anda adalah Ahli Evaluasi Akademik Kurikulum merdeka pendekatan deep learning dan Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
+        sys_prompt = "Anda adalah Ahli Kurikulum Berbasis Cinta (KBC) 2026. Format: Markdown. Langsung isi dokumen inti."
         user_prompt = f"Buat dokumen {doc_type_materi} pelajaran {mapel_materi} kelas {kelas_materi} topik: {materi_pembelajaran}. Sertakan tabel langkah kegiatan."
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
@@ -477,7 +477,7 @@ if btn_soal:
         }
         
         sys_prompt = """
-        Anda adalah Ahli Evaluasi Akademik Kurikulum merdeka pendekatan deep learning dan Kurikulum Berbasis Cinta (KBC) 2026.
+        Anda adalah Ahli Evaluasi Akademik Kurikulum Berbasis Cinta (KBC) 2026.
         Tugas Anda adalah memproduksi naskah lembar ujian/soal yang siap dikerjakan siswa.
         Format Output Harus Terstruktur Menggunakan Penomoran Rapi:
         - BAGIAN I: SOAL PILIHAN GANDA (berikan opsi A, B, C, D)
