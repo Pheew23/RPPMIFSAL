@@ -95,7 +95,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Konstanta API
+# Konstanta API (MENGGUNAKAN SECRETS STREAMLIT CLOUD)
 NVIDIA_API_KEY = st.secrets["NVIDIA_API_KEY"]
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "nvidia/nemotron-3-ultra-550b-a55b"
@@ -109,10 +109,13 @@ def get_ai_response_kbc(prompt, system_instruction):
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7, "top_p": 0.9, "max_tokens": 16384, "stream": False
+        "temperature": 0.2, # REVISI: DIKURANGI AGAR TIDAK HALUSINASI FORMAT
+        "top_p": 0.8, 
+        "max_tokens": 16384, 
+        "stream": False
     }
     try:
-        with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
+        with st.status(f"❤️ Lagos AI Sedang Memasak... 15-45s...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
                 status.update(label="✅ Perumusan Konten Selesai!", state="complete", expanded=False)
@@ -143,7 +146,7 @@ def clean_markdown_symbols(text):
     text = re.sub(r'^#+\s*', '', text)
     text = re.sub(r'^[-*]\s+', '', text)
     
-    # REVISI: Mengubah <br> menjadi Enter (Baris Baru) di dalam format tabel dan teks
+    # REVISI: Mengubah <br> menjadi Enter (Baris Baru) dengan aman tanpa memecah tabel
     text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
     
     return text.strip()
@@ -168,8 +171,8 @@ def create_word_doc_kbc(content, doc_type, school_data):
     try:
         doc = Document()
         
-        # Atur halaman ke Landscape jika tipe dokumennya Prota atau Promes
-        if doc_type in ["Prota", "Promes"]:
+        # Atur halaman ke Landscape jika tipe dokumennya Prota, Promes, atau Jurnal
+        if doc_type in ["Prota", "Promes", "Jurnal Mengajar"]:
             for section in doc.sections:
                 set_section_to_landscape(section)
                 section.top_margin = Inches(0.7)
@@ -197,7 +200,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
 
         p_line = doc.add_paragraph()
         p_line.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        set_font_safe(p_line.add_run("_" * (100 if doc_type in ["Prota", "Promes"] else 70)), size=10)
+        set_font_safe(p_line.add_run("_" * (100 if doc_type in ["Prota", "Promes", "Jurnal Mengajar"] else 70)), size=10)
 
         p_title = doc.add_paragraph()
         p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -236,7 +239,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
                                     if c_idx < len(row.cells):
                                         row.cells[c_idx].text = cell_text
                                         for p in row.cells[c_idx].paragraphs:
-                                            for run in p.runs: set_font_safe(run, size=10 if doc_type in ["Prota", "Promes"] else 11, bold=(r_idx==0))
+                                            for run in p.runs: set_font_safe(run, size=10 if doc_type in ["Prota", "Promes", "Jurnal Mengajar"] else 11, bold=(r_idx==0))
                         except: pass
                         table_buffer = []
                         in_table_mode = False
@@ -272,7 +275,7 @@ def create_word_doc_kbc(content, doc_type, school_data):
         buffer.seek(0)
         return buffer
     except Exception as e:
-        st.error(f"Error Pembuatan Modul Ajar: {e}")
+        st.error(f"Error Pembuatan Dokumen Ajar: {e}")
         return None
 
 # ==========================================
@@ -349,29 +352,21 @@ def create_word_soal_kbc(content, doc_type, school_data):
         st.error(f"Error Pembuatan Soal Word: {e}")
         return None
 
-# --- DIALOG POP-UP DOKUMEN DENGAN QUOTES DI NAMI S---
+# --- DIALOG POP-UP DOKUMEN ---
 @st.dialog("📥 Berkas Anda Telah Siap!")
 def show_download_popup(buffer, filename, fallback_msg):
     st.write(f"### 🎉 Berkas Selesai!")
     
-    # Kumpulan Quotes KBC yang dipanggil secara acak tiap kali pop-up dirender
     kbc_quotes = [
         "Kita semua baik-baik saja, sampai hidup menarik orang lain untuk mulai ambil suara.",
-        "Mengajari hati untuk bersyukur adalah tugas seumur hidup yang tidak akan pernah selesai kita pelajari. Namun peluk juga rasa sedihmu tanpa rasa bersalah. Menjadi manusia bukan tentang memilih satu di antara keduanya.",
-        "Rasa sedih benci objek yang terus bergerak",
+        "Mengajari hati untuk bersyukur adalah tugas seumur hidup yang tidak akan pernah selesai kita pelajari.",
+        "Rasa sedih benci objek yang terus bergerak.",
         "Hati manusia itu terbatas, pilih emosi mana yang layak kamu jaga.",
         "Dunia bakal tetap bergerak, tanpa peduli berapa banyak jam tidur yang kamu punya.",
         "Semoga kita selalu punya banyak cara untuk bahagia, walau sederhana.",
-        "Orang lain tidak tahu caramu melewati masa-masa sulit itu. Dan itu gapapa, banggalah pada dirimu sendiri.",
-        "Tetap berjalan meskipun takut masih menghantui, itu juga disebut berani.",
-        "Semua ini, hanya musim yang datang silih berganti.",
-        "Semoga kita selalu puas menikmati porsi milik kita, tanpa iri pada piring orang lain.",
-        "Berterima kasih atas hal-hal yang menumbuh tumbangkan, atas semua yang melemah-kuatkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan.",
-        "Perlahan-lahan aku ingin bisa semua hal. Perlahan-lahan pula aku lupa apa yang aku punya.",
-        "Pada akhirnya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang.",
+        "Berterima kasih atas hal-hal yang menumbuh tumbangkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan.",
         "Meskipun, kamu kalah dalam banyak hal, mari tetap menjadi manusia yang tidak habis DAYA JUANGNYA.",
-        "hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa.",
-        "Jika mulai bertanya-tanya, ingat lagi bahwa jika jalan kita tidak disini, kita sudah putar balik sejak lama.",
+        "Hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa.",
     ]
     st.markdown(f"> *\"{random.choice(kbc_quotes)}\"*")
     
@@ -385,7 +380,6 @@ def show_download_popup(buffer, filename, fallback_msg):
     )
 
 # --- UI INTERFACE CORE ---
-from streamlit_lottie import st_lottie
 lottie_heart = load_lottieurl("https://assets5.lottiefiles.com/packages/lf20_v9t630.json")
 
 c_title, c_logo = st.columns([0.85, 0.15])
@@ -399,8 +393,8 @@ st.divider()
 
 tab_setup, tab_materi, tab_soal = st.tabs([
     "🏛️ Langkah 1: Profil Lembaga", 
-    "📚 Langkah 2: Modul Pembelajaran (Format Asli)", 
-    "📝 Langkah 3: Modul Bank Soal (Format Kustom Ujian)"
+    "📚 Langkah 2: Dokumen Administrasi", 
+    "📝 Langkah 3: Modul Bank Soal"
 ])
 
 with tab_setup:
@@ -423,22 +417,25 @@ with tab_setup:
 
 with tab_materi:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.subheader("Kurikulum Perangkat Mengajar")
+    st.subheader("Kurikulum & Agenda Mengajar")
     cx, cy = st.columns(2)
     with cx:
-        doc_type_materi = st.selectbox("Pilih Output Dokumen Perangkat", ["Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD"])
+        # MENU BARU DITAMBAHKAN DI SINI: JURNAL MENGAJAR
+        doc_type_materi = st.selectbox("Pilih Output Dokumen Perangkat", [
+            "Modul Ajar", "RPP", "ATP", "CP", "Prota", "Promes", "LKPD", "Jurnal Mengajar"
+        ])
         mapel_materi = st.text_input("Mata Pelajaran", "Akidah Akhlak", key="mp_materi")
     with cy:
         kelas_materi = st.text_input("Kelas / Fase Tingkat", "IV / Fase B", key="kls_materi")
         tahun_ajaran_materi = st.text_input("Periode Tahun Ajaran", "2026/2027", key="ta_materi")
     materi_pembelajaran = st.text_area("Topik Pokok Pembelajaran / Bab Bahasan", "Sifat Wajib Allah", height=100, key="mat_materi")
     st.divider()
-    btn_materi = st.button("🚀 GENERASIKAN MODUL PERANGKAT", type="primary", use_container_width=True)
+    btn_materi = st.button("🚀 GENERASIKAN DOKUMEN", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with tab_soal:
     st.markdown('<div class="premium-card">', unsafe_allow_html=True)
-    st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian (Hasil Akhir Dual Kolom)")
+    st.subheader("Konfigurasi Evaluasi Ujian / Ulangan Harian (Dual Kolom)")
     
     c_soal1, c_soal2 = st.columns(2)
     with c_soal1:
@@ -451,7 +448,7 @@ with tab_soal:
     with c_soal2:
         materi_soal = st.text_input("Materi Pokok Ujian", "Perkenalan / Ta'aruf", key="mat_soal")
         kesulitan_soal = st.selectbox("Tingkat Kesulitan", ["Mudah", "Sedang", "Sulit", "Campuran / HOTS"])
-        tahun_ajaran_soal = st.text_input("Tahun Ajaran Ujian", "2025/2026", key="ta_soal")
+        tahun_ajaran_soal = st.text_input("Tahun Ajaran Ujian", "2026/2027", key="ta_soal")
         
     st.markdown("##### 📊 Komposisi Distribusi Soal")
     cg1, cg2, cg3 = st.columns(3)
@@ -466,7 +463,7 @@ with tab_soal:
     btn_soal = st.button("📝 GENERASIKAN LEMBAR BANK SOAL", type="primary", use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- REVISI SIDEBAR: MENAMBAHKAN INFORMASI DI BAWAH KONTROL ADMINISTRASI ---
+# --- SIDEBAR KONTROL ADMINISTRASI ---
 with st.sidebar:
     st.header("📋 Kontrol Administrasi")
     tanggal_buat = st.date_input("Tanggal Cetak Dokumen")
@@ -479,7 +476,7 @@ with st.sidebar:
     - 🧘 Cinta kepada Diri Sendiri
     - 🤝 Cinta kepada Sesama
     - 🌿 Cinta kepada Lingkungan
-""")
+    """)
 
 # --- INISIALISASI SESSION STATE ---
 if "buffer_materi" not in st.session_state:
@@ -497,7 +494,7 @@ if "buka_popup_materi" not in st.session_state:
 if "buka_popup_soal" not in st.session_state:
     st.session_state.buka_popup_soal = False
 
-# --- PROSES EKSEKUSI: TAB MATERI (DENGAN STRUKTUR PROMPT BERBEDA PER BERKAS) ---
+# --- PROSES EKSEKUSI: TAB MATERI ---
 if btn_materi:
     if not nama_madrasah or not materi_pembelajaran:
         st.warning("⚠️ Harap lengkapi Profil Instansi pada Langkah 1 dan Materi pada Langkah 2.")
@@ -509,71 +506,84 @@ if btn_materi:
             "mapel": mapel_materi, "kelas": kelas_materi, "tahun_ajaran": tahun_ajaran_materi, "materi": materi_pembelajaran
         }
         
-        # LOGIKA PERBEDAAN FORMAT SECARA KETAT BERDASARKAN PARAMETER PILIHAN
+        # LOGIKA PERBEDAAN FORMAT SECARA KETAT (REVISI FEW-SHOT TEMPLATE TERMASUK JURNAL)
         if doc_type_materi in ["Modul Ajar", "RPP"]:
             spesifikasi_format = (
                 "Format Wajib RPP/Modul Ajar:\n"
-                "Sertakan komponen formal terstruktur: A. Identitas Modul, B. Identifikasi Kesiapan Peserta Didik, "
-                "C. Tema Kurikulum Berbasis Cinta dan Deep Learning, D. Karakteristik Materi Pelajaran, "
-                "E. Dimensi Profil Pelajar Pancasila / Lulusan.\n"
-                "Serta wajib melampirkan tabel detail langkah-langkah kegiatan pembelajaran harian (Pendahuluan, Inti, Penutup berbasis KBC) "
-                "dan Rencana Asesmen/Penilaian yang valid."
-                "file harus rapih tidak boleh berantakan"
+                "Sertakan komponen formal: A. Identitas, B. Kesiapan Siswa, C. Tema KBC, D. Karakteristik, E. Profil Pelajar Pancasila.\n"
+                "WAJIB gunakan format tabel Markdown ini untuk langkah kegiatan:\n"
+                "| Tahap Pembelajaran | Rincian Kegiatan (Pendahuluan/Inti/Penutup) | Alokasi Waktu | Nilai KBC yang Ditanamkan |\n"
+                "|---|---|---|---|\n"
+                "| Pendahuluan | ... | ... | ... |\n"
+                "| Kegiatan Inti | ... | ... | ... |\n"
+                "| Penutup | ... | ... | ... |\n"
             )
         elif doc_type_materi == "CP":
             spesifikasi_format = (
                 "Format Wajib Capaian Pembelajaran (CP):\n"
-                "Jangan buat tabel timeline mingguan, RPP, atau kegiatan mengajar harian!\n"
-                "Fokus pada perumusan rasionalisasi mata pelajaran, target kompetensi esensial makro siswa, "
-                "serta pembagian Elemen CP Kurikulum Merdeka yang dikawinkan dengan 5 Pilar Utama KBC 2026."
-                "file harus rapih tidak boleh berantakan"
+                "Jangan buat tabel kegiatan mengajar harian! Fokus pada rasionalisasi dan target kompetensi.\n"
+                "WAJIB gunakan format tabel Markdown ini untuk elemen CP:\n"
+                "| Elemen CP | Deskripsi Capaian Pembelajaran | Integrasi 5 Pilar KBC |\n"
+                "|---|---|---|\n"
+                "| ... | ... | ... |\n"
             )
         elif doc_type_materi == "ATP":
             spesifikasi_format = (
                 "Format Wajib Alur Tujuan Pembelajaran (ATP):\n"
-                "Buat dalam bentuk tabel matriks pemetaan dengan kolom: [No] | [Elemen CP] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu/JP] | [Aspek Karakter KBC].\n"
-                "Tunjukkan alur logis pengajaran kompetensi dari yang paling mendasar menuju ke tahapan deep learning."
-                "file harus rapih tidak boleh berantakan"
+                "WAJIB gunakan format tabel Markdown ini secara persis:\n"
+                "| No | Elemen CP | Tujuan Pembelajaran (TP) | Alokasi Waktu / JP | Aspek Karakter KBC |\n"
+                "|---|---|---|---|---|\n"
+                "| 1 | ... | ... | ... | ... |\n"
             )
         elif doc_type_materi == "Prota":
             spesifikasi_format = (
                 "Format Wajib Program Tahunan (Prota) - ORIENTASI LANDSCAPE:\n"
-                "Buatlah pemetaan satu tahun penuh dalam bentuk matriks tabel horizontal. Kolom wajib: [No] | [Semester] | [Capaian Pembelajaran (CP) & Elemen] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu Makro (JP)].\n"
-                "Distribusikan bab/topik pembelajaran secara menyeluruh untuk Semester Ganjil dan Genap."
-                "file harus rapih tidak boleh berantakan"
+                "WAJIB gunakan format tabel Markdown ini secara persis:\n"
+                "| No | Semester | Capaian Pembelajaran (CP) & Elemen | Tujuan Pembelajaran (TP) | Alokasi JP |\n"
+                "|---|---|---|---|---|\n"
+                "| 1 | Ganjil | ... | ... | ... |\n"
             )
         elif doc_type_materi == "Promes":
             spesifikasi_format = (
                 "Format Wajib Program Semester (Promes) - ORIENTASI LANDSCAPE:\n"
-                "Buatlah tabel waktu bulanan yang sangat spesifik untuk Semester Ganjil DAN Semester Genap.\n"
-                "Tabel wajib memiliki kolom: [No] | [Capaian Pembelajaran (CP) / Elemen] | [Alur & Tujuan Pembelajaran (ATP)] | [Alokasi JP] | [Juli] | [Agustus] | [September] | [Oktober] | [November] | [Desember] | [Januari] | [Februari] | [Maret] | [April] | [Mei] | [Juni].\n"
-                "Isi bagian kolom bulan dengan tanda blok atau centang penanda alokasi minggu pengajaran secara rapi."
-                "file harus rapih tidak boleh berantakan"
+                "WAJIB gunakan format tabel Markdown ini secara persis (Gunakan 'v' untuk menandai bulan):\n"
+                "| No | Elemen CP | ATP | JP | Jul | Agu | Sep | Okt | Nov | Des | Jan | Feb | Mar | Apr | Mei | Jun |\n"
+                "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|\n"
+                "| 1 | ... | ... | ... | v | v |   |   |   |   |   |   |   |   |   |   |\n"
+            )
+        elif doc_type_materi == "Jurnal Mengajar":
+            spesifikasi_format = (
+                "Format Wajib Jurnal Agenda Mengajar Harian Guru - ORIENTASI LANDSCAPE:\n"
+                "Jabarkan kegiatan untuk beberapa kali pertemuan sesuai topik.\n"
+                "WAJIB gunakan format tabel Markdown ini secara persis untuk log harian:\n"
+                "| Pertemuan Ke | Hari/Tanggal | Kelas/Jam Ke | Kompetensi Dasar / TP | Materi Pokok | Uraian Kegiatan | Absensi/Keterangan |\n"
+                "|---|---|---|---|---|---|---|\n"
+                "| 1 | ... | ... | ... | ... | ... | ... |\n"
+                "| 2 | ... | ... | ... | ... | ... | ... |\n"
             )
         else:  # LKPD
             spesifikasi_format = (
                 "Format Wajib LKPD KBC:\n"
-                "Buatlah lembar kerja aktivitas interaktif untuk dikerjakan murid. Isinya meliputi Judul Aktivitas, Petunjuk Belajar, "
-                "Pertanyaan Pemantik Deep Learning, Studi Kasus/Problem Solving berbasis empati, serta Lembar Refleksi Perasaan Murid."
-                "File hasil harus rapih tidak boleh berantakan"
+                "Buat lembar kerja aktivitas interaktif (Judul, Petunjuk, Pertanyaan Pemantik, Studi Kasus).\n"
+                "WAJIB gunakan format tabel Markdown ini untuk rubrik penilaian di bagian akhir:\n"
+                "| Aspek Penilaian | Kriteria Ketercapaian | Skor Maksimal |\n"
+                "|---|---|---|\n"
+                "| ... | ... | ... |\n"
             )
 
         sys_prompt = (
-            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran deep learning yang berbasis kurikulum berbasis cinta"
-            f"Deep Learning (Meaningful, Mindful, Joyful Learning) dan Kurikulum Berbasis Cinta (KBC) 2026 dengan 5 pilar cinta.\n"
-            f"Tugas utama Anda adalah menyusun dokumen administrasi guru berjenis formal dan siap pakai: {doc_type_materi}.\n"
-            f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
+            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka.\n"
+            f"Tugas utama Anda menyusun dokumen: {doc_type_materi}.\n"
+            f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG keluar format:\n"
             f"{spesifikasi_format}\n"
-            f"Gunakan format Markdown murni yang rapi. Tuliskan isi dokumen dengan bahasa akademis dan penuh empati."
-            f"Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru."
+            f"Gunakan format Markdown murni. Jangan gunakan tag HTML seperti <br> atau <p>. Gunakan format standar (\\n)."
         )
         
         user_prompt = f"""
-        Rancangkan secara komprehensif dokumen perangkat administrasi mengajar jenis: **{doc_type_materi}**
+        Buat dokumen perangkat: **{doc_type_materi}**
         Mata Pelajaran: {mapel_materi}, Kelas/Fase: {kelas_materi}, Tahun Ajaran: {tahun_ajaran_materi}.
-        Topik/Bab Pembelajaran Utama: {materi_pembelajaran}.
-        Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru       
-        Pastikan output Anda berfokus penuh pada format struktur {doc_type_materi} yang diminta tanpa keluar dari instruksi khusus di atas!
+        Topik/Bab Utama: {materi_pembelajaran}.
+        Pastikan format Anda persis seperti yang diminta di instruksi sistem!
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
@@ -581,7 +591,7 @@ if btn_materi:
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
                 st.session_state.buffer_materi = buffer
-                st.session_state.filename_materi = f"KBC2026_{doc_type_materi}_{mapel_materi}.docx"
+                st.session_state.filename_materi = f"KBC2026_{doc_type_materi.replace(' ', '_')}_{mapel_materi}.docx"
                 st.session_state.buka_popup_materi = True
                 st.rerun()
 
@@ -600,26 +610,23 @@ if btn_soal:
         }
         
         sys_prompt = """
-        Anda adalah Ahli Evaluasi Akademik Kurikulum Merdeka dengan pendekatan Deep Learning Berbasis Cinta (KBC) 2026.
-        Tugas Anda adalah memproduksi naskah lembar ujian/soal asesmen bertema Kurikulum Merdeka yang siap dikerjakan siswa. 
-        Pastikan stimulus soal kontekstual, bermakna, menumbuhkan pemikiran mendalam (deep learning), dan menyentuh nilai-nilai karakter KBC 2026.
-        Format Output Harus Terstruktur Menggunakan Penomoran Rapi:
-        - BAGIAN I: SOAL PILIHAN GANDA (berikan opsi A, B, C, D)
+        Anda adalah Ahli Evaluasi Akademik Kurikulum Merdeka (KBC 2026).
+        Tugas Anda memproduksi naskah soal ujian. Pastikan menyentuh nilai-nilai karakter 5 pilar cinta KBC.
+        Format Output Wajib:
+        - BAGIAN I: SOAL PILIHAN GANDA (opsi A, B, C, D)
         - BAGIAN II: SOAL ISIAN SINGKAT
         - BAGIAN III: SOAL URAIAN / ESSAY
-        Jangan memunculkan jawaban di lembar ini. Buatkan Kunci Jawaban terpisah di paling bawah halaman dokumen.
-        Jangan gunakan kode blok markdown (```).
+        Buatkan Kunci Jawaban terpisah di paling bawah dokumen. Jangan gunakan blok kode (```).
         """
         
         user_prompt = f"""
-        Buatkan naskah soal ujian {doc_type_soal} untuk Mata Pelajaran {mapel_soal}, {kelas_soal} berdasarkan standar Kurikulum Merdeka KBC 2026.
-        Materi Pokok Bahasan: {materi_soal}.
-        Tingkat Kesulitan Soal: {kesulitan_soal}.
-        Komposisi Soal Yang Harus Dibuat:
-        - {jml_pg} Soal Pilihan Ganda (PG)
-        - {jml_isian} Soal Isian Singkat
-        - {jml_uraian} Soal Uraian/Essay
-        Sertakan Kunci Jawaban lengkap di bagian paling akhir halaman!
+        Ujian {doc_type_soal} Mapel {mapel_soal}, Kelas {kelas_soal}.
+        Materi: {materi_soal}. Tingkat Kesulitan: {kesulitan_soal}.
+        Komposisi:
+        - {jml_pg} Pilihan Ganda (PG)
+        - {jml_isian} Isian Singkat
+        - {jml_uraian} Uraian/Essay
+        Sertakan Kunci Jawaban lengkap di akhir!
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
@@ -631,11 +638,11 @@ if btn_soal:
                 st.session_state.buka_popup_soal = True
                 st.rerun()
 
-# --- LOGIKA PEMANGGILAN POPUP SETELAH RERUN AGAR DIJAMIN MUNCUL ---
+# --- LOGIKA PEMANGGILAN POPUP ---
 if st.session_state.buka_popup_materi:
     st.session_state.buka_popup_materi = False  
-    show_download_popup(st.session_state.buffer_materi, st.session_state.filename_materi, "Pekerjaan Saya Selesai, ada lagi yang bisa di bantu?.")
+    show_download_popup(st.session_state.buffer_materi, st.session_state.filename_materi, "Pekerjaan selesai.")
 
 if st.session_state.buka_popup_soal:
     st.session_state.buka_popup_soal = False  
-    show_download_popup(st.session_state.buffer_soal, st.session_state.filename_soal, "Pekerjaan saya hanya bisa sampai sini, sisanya edit sendiri ya.")
+    show_download_popup(st.session_state.buffer_soal, st.session_state.filename_soal, "Pekerjaan selesai.")
