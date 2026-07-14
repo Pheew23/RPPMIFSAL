@@ -567,8 +567,8 @@ if btn_materi:
         user_prompt = f"""
         Rancangkan secara komprehensif dokumen perangkat administrasi mengajar jenis: **{doc_type_materi}**
         Mata Pelajaran: {mapel_materi}, Kelas/Fase: {kelas_materi}, Tahun Ajaran: {tahun_ajaran_materi}.
-        Topik/Bab Pembelajaran Utama: {materi_pembelajaran}.
-        
+        Topik/Bab Pembelajaran Utama: {materi_pembelajaran}, Penyusun:{Nama_Guru}.
+        Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru       
         Pastikan output Anda berfokus penuh pada format struktur {doc_type_materi} yang diminta tanpa keluar dari instruksi khusus di atas!
         """
         
