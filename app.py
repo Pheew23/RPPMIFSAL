@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from docx import Document
+from dotenv import load_dotenv
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.section import WD_ORIENT
@@ -96,7 +97,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Konstanta API
-NVIDIA_API_KEY = "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"
+NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY") # Ambil dari file .env
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "nvidia/nemotron-3-ultra-550b-a55b"
 
