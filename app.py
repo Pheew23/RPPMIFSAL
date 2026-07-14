@@ -581,9 +581,20 @@ if btn_materi:
         
         user_prompt = f"""
         Buat dokumen perangkat: **{doc_type_materi}**
-        Mata Pelajaran: {mapel_materi}, Kelas/Fase: {kelas_materi}, Tahun Ajaran: {tahun_ajaran_materi}.
-        Topik/Bab Utama: {materi_pembelajaran}.
-        Pastikan format Anda persis seperti yang diminta di instruksi sistem!
+        
+        DATA IDENTITAS (WAJIB DIMASUKKAN KE DALAM DOKUMEN):
+        - Nama Instansi / Sekolah: {nama_madrasah}
+        - Nama Guru Penyusun: {nama_guru}
+        - Kepala Madrasah: {kepala_madrasah}
+        
+        DETAIL PELAJARAN:
+        - Mata Pelajaran: {mapel_materi}
+        - Kelas/Fase: {kelas_materi}
+        - Tahun Ajaran: {tahun_ajaran_materi}
+        - Topik/Bab Utama: {materi_pembelajaran}
+        
+        Pastikan format Anda persis seperti yang diminta di instruksi sistem! 
+        Sertakan Data Identitas di atas secara lengkap pada bagian "Identitas Modul" atau "Informasi Umum" di hasil akhir.
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
