@@ -357,6 +357,17 @@ def show_download_popup(buffer, filename, fallback_msg):
         "Rasa sedih benci objek yang terus bergerak",
         "Hati manusia itu terbatas, pilih emosi mana yang layak kamu jaga.",
         "Dunia bakal tetap bergerak, tanpa peduli berapa banyak jam tidur yang kamu punya."
+        "Semoga kita selalu punya banyak cara untuk bahagia, walau sederhana."
+        "Orang lain tidak tahu caramu melewati masa-masa sulit itu. Dan itu gapapa, banggalah pada dirimu sendiri."
+        "Tetap berjalan meskipun takut masih menghantui, itu juga disebut berani."
+        "Semua ini, hanya musim yang datang silih berganti."
+        "Semoga kita selalu puas menikmati porsi milik kita, tanpa iri pada piring orang lain."
+        "Berterima kasih atas hal-hal yang menumbuh tumbangkan, atas semua yang melemah-kuatkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan."
+        "Perlahan-lahan aku ingin bisa semua hal. Perlahan-lahan pula aku lupa apa yang aku punya."
+        "Pada akhirnya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang."
+        "Meskipun, kamu kalah dalam banyak hal, mari tetap menjadi manusia yang tidak habis DAYA JUANGNYA."
+        "hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa."
+        "Jika mulai bertanya-tanya, ingat lagi bahwa jika jalan kita tidak disini, kita sudah putar balik sejak lama."
     ]
     st.markdown(f"> *\"{random.choice(kbc_quotes)}\"*")
     
@@ -540,13 +551,13 @@ if btn_materi:
                 "Format Wajib LKPD KBC:\n"
                 "Buatlah lembar kerja aktivitas interaktif untuk dikerjakan murid. Isinya meliputi Judul Aktivitas, Petunjuk Belajar, "
                 "Pertanyaan Pemantik Deep Learning, Studi Kasus/Problem Solving berbasis empati, serta Lembar Refleksi Perasaan Murid."
-                "file harus rapih tidak boleh berantakan"
+                "File hasil harus rapih tidak boleh berantakan"
             )
 
         sys_prompt = (
-            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
+            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran deep learning yang berbasis kurikulum berbasis cinta"
             f"Deep Learning (Meaningful, Mindful, Joyful Learning) dan Kurikulum Berbasis Cinta (KBC) 2026 dengan 5 pilar cinta.\n"
-            f"Tugas utama Anda adalah menyusun dokumen administrasi guru berjenis formal: {doc_type_materi}.\n"
+            f"Tugas utama Anda adalah menyusun dokumen administrasi guru berjenis formal dan siap pakai: {doc_type_materi}.\n"
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni yang rapi. Tuliskan isi dokumen dengan bahasa akademis dan penuh empati."
