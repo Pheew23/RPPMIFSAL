@@ -98,7 +98,7 @@ st.markdown("""
 # Konstanta API
 NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-MODEL_NAME = "minimaxai/minimax-m3"
+MODEL_NAME = "nvidia/nemotron-3-ultra-550b-a55b"
 
 # --- LOGIKA CORE & HELPER ---
 def get_ai_response_kbc(prompt, system_instruction):
@@ -109,7 +109,7 @@ def get_ai_response_kbc(prompt, system_instruction):
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.6, "top_p": 0.8, "max_tokens": 6096, "stream": False
+        "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
     }
     try:
         with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
