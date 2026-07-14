@@ -142,6 +142,10 @@ def clean_markdown_symbols(text):
     text = re.sub(r'\*(.*?)\*', r'\1', text)
     text = re.sub(r'^#+\s*', '', text)
     text = re.sub(r'^[-*]\s+', '', text)
+    
+    # REVISI: Mengubah <br> menjadi Enter (Baris Baru) di dalam format tabel dan teks
+    text = re.sub(r'<br\s*/?>', '\n', text, flags=re.IGNORECASE)
+    
     return text.strip()
 
 def set_document_to_two_columns(section):
@@ -364,7 +368,7 @@ def show_download_popup(buffer, filename, fallback_msg):
         "Semoga kita selalu puas menikmati porsi milik kita, tanpa iri pada piring orang lain.",
         "Berterima kasih atas hal-hal yang menumbuh tumbangkan, atas semua yang melemah-kuatkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan.",
         "Perlahan-lahan aku ingin bisa semua hal. Perlahan-lahan pula aku lupa apa yang aku punya.",
-        "Pada akhirya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang.",
+        "Pada akhirnya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang.",
         "Meskipun, kamu kalah dalam banyak hal, mari tetap menjadi manusia yang tidak habis DAYA JUANGNYA.",
         "hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa.",
         "Jika mulai bertanya-tanya, ingat lagi bahwa jika jalan kita tidak disini, kita sudah putar balik sejak lama.",
@@ -561,22 +565,19 @@ if btn_materi:
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni yang rapi. Tuliskan isi dokumen dengan bahasa akademis dan penuh empati."
-            f"Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\\n) untuk baris baru."
+            f"Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru."
         )
         
         user_prompt = f"""
         Rancangkan secara komprehensif dokumen perangkat administrasi mengajar jenis: **{doc_type_materi}**
         Mata Pelajaran: {mapel_materi}, Kelas/Fase: {kelas_materi}, Tahun Ajaran: {tahun_ajaran_materi}.
         Topik/Bab Pembelajaran Utama: {materi_pembelajaran}.
-        Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\\n) untuk baris baru       
+        Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru       
         Pastikan output Anda berfokus penuh pada format struktur {doc_type_materi} yang diminta tanpa keluar dari instruksi khusus di atas!
         """
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
         if content:
-            # PROSES MEMBERSIHKAN TAG <br> DARI RESPON AI
-            content = re.sub(r'<br\s*/?>', '\n', content, flags=re.IGNORECASE)
-            
             buffer = create_word_doc_kbc(content, doc_type_materi, data)
             if buffer:
                 st.session_state.buffer_materi = buffer
@@ -623,9 +624,6 @@ if btn_soal:
         
         content = get_ai_response_kbc(user_prompt, sys_prompt)
         if content:
-            # PROSES MEMBERSIHKAN TAG <br> DARI RESPON AI
-            content = re.sub(r'<br\s*/?>', '\n', content, flags=re.IGNORECASE)
-            
             buffer = create_word_soal_kbc(content, doc_type_soal, data)
             if buffer:
                 st.session_state.buffer_soal = buffer
