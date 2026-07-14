@@ -561,6 +561,7 @@ if btn_materi:
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni yang rapi. Tuliskan isi dokumen dengan bahasa akademis dan penuh empati."
+            f"Jangan pernah menggunakan tag HTML seperti <br>, <p>, atau sejenisnya untuk membuat baris baru. Gunakan format Markdown standar (\n) untuk baris baru."
         )
         
         user_prompt = f"""
