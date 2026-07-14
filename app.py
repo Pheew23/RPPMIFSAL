@@ -96,7 +96,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # Konstanta API
-NVIDIA_API_KEY = "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"
+NVIDIA_API_KEY = "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"
 NVIDIA_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 MODEL_NAME = "minimaxai/minimax-m3"
 
