@@ -503,6 +503,7 @@ if btn_materi:
                 "E. Dimensi Profil Pelajar Pancasila / Lulusan.\n"
                 "Serta wajib melampirkan tabel detail langkah-langkah kegiatan pembelajaran harian (Pendahuluan, Inti, Penutup berbasis KBC) "
                 "dan Rencana Asesmen/Penilaian yang valid."
+                "file harus rapih tidak boleh berantakan"
             )
         elif doc_type_materi == "CP":
             spesifikasi_format = (
@@ -510,18 +511,21 @@ if btn_materi:
                 "Jangan buat tabel timeline mingguan, RPP, atau kegiatan mengajar harian!\n"
                 "Fokus pada perumusan rasionalisasi mata pelajaran, target kompetensi esensial makro siswa, "
                 "serta pembagian Elemen CP Kurikulum Merdeka yang dikawinkan dengan 5 Pilar Utama KBC 2026."
+                "file harus rapih tidak boleh berantakan"
             )
         elif doc_type_materi == "ATP":
             spesifikasi_format = (
                 "Format Wajib Alur Tujuan Pembelajaran (ATP):\n"
                 "Buat dalam bentuk tabel matriks pemetaan dengan kolom: [No] | [Elemen CP] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu/JP] | [Aspek Karakter KBC].\n"
                 "Tunjukkan alur logis pengajaran kompetensi dari yang paling mendasar menuju ke tahapan deep learning."
+                "file harus rapih tidak boleh berantakan"
             )
         elif doc_type_materi == "Prota":
             spesifikasi_format = (
                 "Format Wajib Program Tahunan (Prota) - ORIENTASI LANDSCAPE:\n"
                 "Buatlah pemetaan satu tahun penuh dalam bentuk matriks tabel horizontal. Kolom wajib: [No] | [Semester] | [Capaian Pembelajaran (CP) & Elemen] | [Tujuan Pembelajaran (TP)] | [Alokasi Waktu Makro (JP)].\n"
                 "Distribusikan bab/topik pembelajaran secara menyeluruh untuk Semester Ganjil dan Genap."
+                "file harus rapih tidak boleh berantakan"
             )
         elif doc_type_materi == "Promes":
             spesifikasi_format = (
@@ -529,17 +533,19 @@ if btn_materi:
                 "Buatlah tabel waktu bulanan yang sangat spesifik untuk Semester Ganjil DAN Semester Genap.\n"
                 "Tabel wajib memiliki kolom: [No] | [Capaian Pembelajaran (CP) / Elemen] | [Alur & Tujuan Pembelajaran (ATP)] | [Alokasi JP] | [Juli] | [Agustus] | [September] | [Oktober] | [November] | [Desember] | [Januari] | [Februari] | [Maret] | [April] | [Mei] | [Juni].\n"
                 "Isi bagian kolom bulan dengan tanda blok atau centang penanda alokasi minggu pengajaran secara rapi."
+                "file harus rapih tidak boleh berantakan"
             )
         else:  # LKPD
             spesifikasi_format = (
                 "Format Wajib LKPD KBC:\n"
                 "Buatlah lembar kerja aktivitas interaktif untuk dikerjakan murid. Isinya meliputi Judul Aktivitas, Petunjuk Belajar, "
                 "Pertanyaan Pemantik Deep Learning, Studi Kasus/Problem Solving berbasis empati, serta Lembar Refleksi Perasaan Murid."
+                "file harus rapih tidak boleh berantakan"
             )
 
         sys_prompt = (
             f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka dengan metode pembelajaran "
-            f"Deep Learning (Meaningful, Mindful, Joyful Learning) dan Kurikulum Berbasis Cinta (KBC) 2026.\n"
+            f"Deep Learning (Meaningful, Mindful, Joyful Learning) dan Kurikulum Berbasis Cinta (KBC) 2026 dengan 5 pilar cinta.\n"
             f"Tugas utama Anda adalah menyusun dokumen administrasi guru berjenis formal: {doc_type_materi}.\n"
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG mencampurnya dengan format berkas lain:\n"
             f"{spesifikasi_format}\n"
