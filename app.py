@@ -109,7 +109,7 @@ def get_ai_response_kbc(prompt, system_instruction):
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.7, "top_p": 0.9, "max_tokens": 6096, "stream": False
+        "temperature": 0.7, "top_p": 0.9, "max_tokens": 16384, "stream": False
     }
     try:
         with st.status(f"❤️ Lagos AI Sedang Memasak...", expanded=True) as status:
@@ -356,18 +356,18 @@ def show_download_popup(buffer, filename, fallback_msg):
         "Mengajari hati untuk bersyukur adalah tugas seumur hidup yang tidak akan pernah selesai kita pelajari. Namun peluk juga rasa sedihmu tanpa rasa bersalah. Menjadi manusia bukan tentang memilih satu di antara keduanya.",
         "Rasa sedih benci objek yang terus bergerak",
         "Hati manusia itu terbatas, pilih emosi mana yang layak kamu jaga.",
-        "Dunia bakal tetap bergerak, tanpa peduli berapa banyak jam tidur yang kamu punya."
-        "Semoga kita selalu punya banyak cara untuk bahagia, walau sederhana."
-        "Orang lain tidak tahu caramu melewati masa-masa sulit itu. Dan itu gapapa, banggalah pada dirimu sendiri."
-        "Tetap berjalan meskipun takut masih menghantui, itu juga disebut berani."
-        "Semua ini, hanya musim yang datang silih berganti."
-        "Semoga kita selalu puas menikmati porsi milik kita, tanpa iri pada piring orang lain."
-        "Berterima kasih atas hal-hal yang menumbuh tumbangkan, atas semua yang melemah-kuatkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan."
-        "Perlahan-lahan aku ingin bisa semua hal. Perlahan-lahan pula aku lupa apa yang aku punya."
-        "Pada akhirnya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang."
-        "Meskipun, kamu kalah dalam banyak hal, mari tetap menjadi manusia yang tidak habis DAYA JUANGNYA."
-        "hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa."
-        "Jika mulai bertanya-tanya, ingat lagi bahwa jika jalan kita tidak disini, kita sudah putar balik sejak lama."
+        "Dunia bakal tetap bergerak, tanpa peduli berapa banyak jam tidur yang kamu punya.",
+        "Semoga kita selalu punya banyak cara untuk bahagia, walau sederhana.",
+        "Orang lain tidak tahu caramu melewati masa-masa sulit itu. Dan itu gapapa, banggalah pada dirimu sendiri.",
+        "Tetap berjalan meskipun takut masih menghantui, itu juga disebut berani.",
+        "Semua ini, hanya musim yang datang silih berganti.",
+        "Semoga kita selalu puas menikmati porsi milik kita, tanpa iri pada piring orang lain.",
+        "Berterima kasih atas hal-hal yang menumbuh tumbangkan, atas semua yang melemah-kuatkan, sebab dari hal-hal itu ada makna yang mampu mendewasakan.",
+        "Perlahan-lahan aku ingin bisa semua hal. Perlahan-lahan pula aku lupa apa yang aku punya.",
+        "Pada akhirnya, semua akan terjawab di waktu yang sudah seharusnya dan dalam sebaik-baiknya bentuk pulang.",
+        "Meskipun, kamu kalah dalam banyak hal, mari tetap menjadi manusia yang tidak habis DAYA JUANGNYA.",
+        "hiduplah dengan cara yang paling bahagia yang kamu punya dan bisa.",
+        "Jika mulai bertanya-tanya, ingat lagi bahwa jika jalan kita tidak disini, kita sudah putar balik sejak lama.",
     ]
     st.markdown(f"> *\"{random.choice(kbc_quotes)}\"*")
     
