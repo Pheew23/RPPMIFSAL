@@ -510,7 +510,7 @@ if btn_materi:
         if doc_type_materi in ["Modul Ajar", "RPP"]:
             spesifikasi_format = (
                 "Format Wajib RPP/Modul Ajar:\n"
-                "Sertakan komponen formal: A. Identitas, B. Kesiapan Siswa, C. Tema KBC, D. Karakteristik, E. Profil Pelajar Pancasila.\n"
+                "Sertakan komponen formal: A. Identitas, B. Kesiapan Siswa, C. Tema Kurikulum Berbasis Cinta 5 Pilar, D. Karakteristik, E. Profil Pelajar Pancasila.\n"
                 "WAJIB gunakan format tabel Markdown ini untuk langkah kegiatan:\n"
                 "| Tahap Pembelajaran | Rincian Kegiatan (Pendahuluan/Inti/Penutup) | Alokasi Waktu | Nilai KBC yang Ditanamkan |\n"
                 "|---|---|---|---|\n"
@@ -621,7 +621,7 @@ if btn_soal:
         }
         
         sys_prompt = """
-        Anda adalah Ahli Evaluasi Akademik Kurikulum Merdeka (KBC 2026).
+        Anda adalah Ahli Evaluasi Akademik Kurikulum Merdeka Deep Learning berbasis Cinta (KBC 2026)
         Tugas Anda memproduksi naskah soal ujian. Pastikan menyentuh nilai-nilai karakter 5 pilar cinta KBC.
         Format Output Wajib:
         - BAGIAN I: SOAL PILIHAN GANDA (opsi A, B, C, D)
