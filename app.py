@@ -516,6 +516,7 @@ if btn_materi:
                 "|---|---|---|---|\n"
                 "| Pendahuluan | ... | ... | ... |\n"
                 "| Kegiatan Inti | ... | ... | ... |\n"
+                "| Asesmen/Penilaian | ... | | ... |\n"
                 "| Penutup | ... | ... | ... |\n"
             )
         elif doc_type_materi == "CP":
