@@ -510,7 +510,7 @@ if btn_materi:
         if doc_type_materi in ["Modul Ajar", "RPP"]:
             spesifikasi_format = (
                 "Format Wajib RPP/Modul Ajar:\n"
-                "Sertakan komponen formal: A. Identitas, B. Kesiapan Siswa, C. Tema Kurikulum Berbasis Cinta 5 Pilar, D. Karakteristik, E. Profil Pelajar Pancasila.\n"
+                "Sertakan komponen formal: A. Identitas, B. Kesiapan Siswa, C. Tema Kurikulum Berbasis Cinta 5 Pilar, D. Karakteristik, E. Profil Pelajar Pancasila, F. Asesmen/Penilaian.\n"
                 "WAJIB gunakan format tabel Markdown ini untuk langkah kegiatan:\n"
                 "| Tahap Pembelajaran | Rincian Kegiatan (Pendahuluan/Inti/Penutup) | Alokasi Waktu | Nilai KBC yang Ditanamkan |\n"
                 "|---|---|---|---|\n"
