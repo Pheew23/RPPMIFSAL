@@ -115,7 +115,7 @@ def get_ai_response_kbc(prompt, system_instruction):
         "stream": False
     }
     try:
-        with st.status(f"❤️ Lagos AI Sedang Memasak... 15-45s...", expanded=True) as status:
+        with st.status(f"❤️ Lagos AI Sedang Memasak... tunggu 15-45s...", expanded=True) as status:
             response = requests.post(NVIDIA_API_URL, headers=headers, json=payload, timeout=300)
             if response.status_code == 200:
                 status.update(label="✅ Perumusan Konten Selesai!", state="complete", expanded=False)
@@ -577,6 +577,7 @@ if btn_materi:
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG keluar format:\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni. Jangan gunakan tag HTML seperti <br> atau <p>. Gunakan format standar (\\n)."
+            f"Masukan Nilai KKM semua mata pelajaran 78.\n"
         )
         
         user_prompt = f"""
