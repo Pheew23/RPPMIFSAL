@@ -109,8 +109,8 @@ def get_ai_response_kbc(prompt, system_instruction):
             {"role": "system", "content": system_instruction},
             {"role": "user", "content": prompt}
         ],
-        "temperature": 0.2, # REVISI: DIKURANGI AGAR TIDAK HALUSINASI FORMAT
-        "top_p": 0.8, 
+        "temperature": 0.3, # REVISI: DIKURANGI AGAR TIDAK HALUSINASI FORMAT
+        "top_p": 0.9, 
         "max_tokens": 16384, 
         "stream": False
     }
@@ -576,9 +576,9 @@ if btn_materi:
             f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka terintegrasi Deep learning(meaningful,mindful,jopful).\n"
             f"Tugas utama Anda menyusun dokumen: {doc_type_materi}.\n"
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG keluar format:\n"
-            f"Gunakan CP berdasarkan KMA Nomor 1503 Tahun 2025.\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni. Jangan gunakan tag HTML seperti <br> atau <p>. Gunakan format standar (\\n)."
+            f"Gunakan CP berdasarkan KMA Nomor 1503 Tahun 2025.\n"
             f"Masukan Nilai KKM semua mata pelajaran 78.\n"
         )
         
