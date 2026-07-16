@@ -573,12 +573,13 @@ if btn_materi:
             )
 
         sys_prompt = (
-            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka terintegrasi Deep learning(meaningful,mindful,jopful).\n"
+            f"Anda adalah Pakar AI dan Ahli Kurikulum Merdeka terintegrasi Deep learning (meaningful,mindful,joyful).\n"
             f"Tugas utama Anda menyusun dokumen: {doc_type_materi}.\n"
             f"PERATURAN UTAMA: Anda harus mematuhi struktur berikut dan DILARANG keluar format:\n"
+            f"PERATURAN Kedua: Anda harus Memasukan minimal satu Mindful,Meaningful,joyful di kegiatan inti pembelajaran dan sesuaikan dengan materi:\n"
             f"{spesifikasi_format}\n"
             f"Gunakan format Markdown murni. Jangan gunakan tag HTML seperti <br> atau <p>. Gunakan format standar (\\n)."
-            f"Gunakan CP berdasarkan KMA Nomor 1503 Tahun 2025.\n"
+            f"Gunakan CP berdasarkan KMA Nomor 503 Tah1un 2025.\n"
             f"Masukan Nilai KKM semua mata pelajaran 78.\n"
         )
         
